@@ -12,7 +12,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "proho\\domain\\DomainServiceProvider"
+        "Proho\\Domain\\DomainServiceProvider"
       ],
       "aliases": []
     }
