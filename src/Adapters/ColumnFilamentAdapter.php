@@ -4,6 +4,7 @@ namespace Proho\Domain\Adapters;
 
 use Proho\Domain\Enums\FieldTypesEnum;
 use Filament\Tables\Columns\TextColumn;
+use Proho\Domain\Field;
 
 class ColumnFilamentAdapter
 {
