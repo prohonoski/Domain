@@ -1,0 +1,20 @@
+{
+  "name": "Proho/Domain",
+  "description": "Domain and adapter layer for isolate business rules",
+  "autoload": {
+    "psr-4": {
+      "Proho\\Domain\\": "src/"
+    }
+  },
+  "require": {
+    "php": "^^8.0"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Proho\\Domain\\DomainServiceProvider"
+      ],
+      "aliases": []
+    }
+  }
+}
