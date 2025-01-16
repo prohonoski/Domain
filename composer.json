@@ -1,5 +1,5 @@
 {
-  "name": "Proho/Domain",
+  "name": "proho/domain",
   "description": "Domain and adapter layer for isolate business rules",
   "autoload": {
     "psr-4": {
@@ -12,7 +12,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Proho\\Domain\\DomainServiceProvider"
+        "proho\\domain\\DomainServiceProvider"
       ],
       "aliases": []
     }
