@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Domain\Base\Interfaces;
+namespace Proho\Domain\Interfaces;
 
-use App\Domain\Base\Rules;
+use Proho\Domain\Rules;
 
 interface DomainModelInterface
 {

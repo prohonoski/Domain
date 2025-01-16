@@ -1,6 +1,6 @@
 <?php
 
-namespace Proho\DomainInterfaces;
+namespace Proho\Domain\Interfaces;
 
 interface DomainServiceInterface
 {

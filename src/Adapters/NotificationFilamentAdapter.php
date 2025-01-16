@@ -1,9 +1,9 @@
 <?php
 
-namespace Proho\DomainAdapters;
+namespace Proho\Domain\Adapters;
 
-use Proho\DomainInterfaces\NotificationInterface;
-use Proho\DomainInterfaces\ValidatorInterface;
+use Proho\Domain\Interfaces\NotificationInterface;
+use Proho\Domain\Interfaces\ValidatorInterface;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 

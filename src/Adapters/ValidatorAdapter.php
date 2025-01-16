@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Domain\Base\Adapters;
+namespace Proho\Domain\Adapters;
 
-use App\Domain\Base\Interfaces\ValidatorInterface;
-use App\Domain\Base\Service;
+use Proho\Domain\Interfaces\ValidatorInterface;
+use Proho\Domain\Service;
 use Illuminate\Support\Facades\Validator;
 
 class ValidatorAdapter implements ValidatorInterface

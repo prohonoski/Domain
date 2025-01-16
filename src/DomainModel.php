@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Domain\Base;
+namespace Proho\Domain;
 
-use App\Domain\Base\Interfaces\DomainModelInterface;
-use App\Domain\Base\Interfaces\DomainServiceInterface;
-use App\Domain\Base\Interfaces\ModelInterface;
-use App\Domain\Base\Interfaces\ValidatorInterface;
+use Proho\Domain\Interfaces\DomainModelInterface;
+use Proho\Domain\Interfaces\DomainServiceInterface;
+use Proho\Domain\Interfaces\ModelInterface;
+use Proho\Domain\Interfaces\ValidatorInterface;
 use App\Domain\GestaoConhecimento\Instrutor\DisponibilidadeModel;
 use App\Domain\Sistema\Pessoa\PessoaModel;
 use Exception;
@@ -176,7 +176,7 @@ class DomainModel implements DomainModelInterface
         foreach (get_object_vars($this) as $name => $value) {
             if (
                 is_object($this->$name) &&
-                get_class($this->$name) == "App\Domain\Base\Field"
+                get_class($this->$name) == "Proho\Domain\Field"
             ) {
                 $this->fields[$this->$name->getName()] = $this->$name;
             }

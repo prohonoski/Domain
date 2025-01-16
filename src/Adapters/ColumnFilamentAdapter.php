@@ -1,11 +1,8 @@
 <?php
 
-namespace Proho\DomainAdapters;
+namespace Proho\Domain\Adapters;
 
-use Proho\DomainEnums\FieldTypesEnum;
-use Proho\DomainField;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
+use Proho\Domain\Enums\FieldTypesEnum;
 use Filament\Tables\Columns\TextColumn;
 
 class ColumnFilamentAdapter

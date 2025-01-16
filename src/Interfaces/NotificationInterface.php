@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\Base\Interfaces;
+namespace Proho\Domain\Interfaces;
 
 interface NotificationInterface
 {

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Domain\Base\Adapters;
+namespace Proho\Domain\Adapters;
 
-use App\Domain\Base\Field;
+use Proho\Domain\Field;
 
 class RulesLaravelAdapter
 {

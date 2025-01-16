@@ -1,9 +1,9 @@
 <?php
 
-namespace Proho\DomainAdapters;
+namespace Proho\Domain\Adapters;
 
-use Proho\DomainEnums\FieldTypesEnum;
-use Proho\DomainField;
+use Proho\Domain\Enums\FieldTypesEnum;
+use Proho\Domain\Field;
 use Exception;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Radio;

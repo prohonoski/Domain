@@ -1,8 +1,8 @@
 <?php
 
-namespace Proho\DomainAdapters;
+namespace Proho\Domain\Adapters;
 
-use Proho\DomainInterfaces\ModelInterface;
+use Proho\Domain\Interfaces\ModelInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Domain\Base;
+namespace Proho\Domain;
 
-use App\Domain\Base\Adapters\RulesFilamentAdapter;
-use App\Domain\Base\Interfaces\DomainModelInterface;
-use App\Domain\Base\Interfaces\InputInterface;
+use Proho\Domain\Adapters\RulesFilamentAdapter;
+use Proho\Domain\Interfaces\DomainModelInterface;
+use Proho\Domain\Interfaces\InputInterface;
 
 use Exception;
 

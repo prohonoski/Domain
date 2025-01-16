@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Domain\Base;
+namespace Proho\Domain;
 
-use App\Domain\Base\Interfaces\DomainModelInterface;
-use App\Domain\Base\Interfaces\DomainServiceInterface;
-use App\Domain\Base\Interfaces\NotificationInterface;
-use App\Domain\Base\Interfaces\ValidatorInterface;
+use Proho\Domain\Interfaces\DomainModelInterface;
+use Proho\Domain\Interfaces\DomainServiceInterface;
+use Proho\Domain\Interfaces\NotificationInterface;
+use Proho\Domain\Interfaces\ValidatorInterface;
 use Illuminate\Support\Facades\Log;
 
 class Service implements DomainServiceInterface

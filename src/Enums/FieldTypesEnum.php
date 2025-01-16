@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\Base\Enums;
+namespace Proho\Domain\Enums;
 
 enum FieldTypesEnum: string
 {

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Domain\Base;
+namespace Proho\Domain;
 
-use App\Domain\Base\Adapters\RulesFilamentAdapter;
+use Proho\Domain\Adapters\RulesFilamentAdapter;
 
 class Input
 {

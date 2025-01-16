@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\Base\Adapters\RulesFilament;
+namespace Proho\Domain\Adapters\RulesFilament;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Field;

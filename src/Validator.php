@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Domain\Base;
+namespace Proho\Domain;
 
-use App\Domain\Base\Interfaces\ValidatorInterface;
+use Proho\Domain\Interfaces\ValidatorInterface;
 
 class Validator
 {

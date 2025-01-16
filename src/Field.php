@@ -2,8 +2,8 @@
 
 namespace Proho\Domain;
 
-use App\Domain\Base\Enums\FieldTypesEnum;
-use App\Domain\Base\Interfaces\FieldInterface;
+use Proho\Domain\Enums\FieldTypesEnum;
+use Proho\Domain\Interfaces\FieldInterface;
 
 class Field implements FieldInterface
 {
