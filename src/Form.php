@@ -15,26 +15,29 @@ class Form
     protected DomainModelInterface $Dmodel;
     protected string|null $classModel;
 
-    public function __construct()
+    public function __construct(?DomainModel|null $dm)
     {
-        $this->configure();
+        $class = $dm ?? ($this->classModel ?? null);
+
+        $this->configure($class);
         $this->setUp();
     }
 
-    public static function make(): static
+    public static function make(?DomainModel|null $dm): static
     {
-        $static = app(static::class);
+        $static = app(static::class, ["dm" => $dm]);
 
         return $static;
     }
 
-    public function configure(string|null $classModel = null): self
+    public function configure(mixed $class = null): self
     {
         try {
-            $class = $classModel ?? ($this->classModel ?? null);
-
-            if ($class) {
+            if (is_string($class) and class_exists($class)) {
                 $this->Dmodel = $class::make();
+            }
+            else ($class instanceof DomainModel) {
+                $this->Dmodel = $class;
             }
         } catch (Exception $e) {
             throw new Exception(
@@ -51,20 +54,20 @@ class Form
      *
      * @return array<string, Field>
      */
-    public function autoForm(): array
+    public function autoForm(): self
     {
-        $components = [];
+        $this->components = [];
 
         foreach ($this->Dmodel->getFields() as $key => $field) {
             if (!$field->isFillable()) {
                 continue;
             }
 
-            $components[$key] = app(InputInterface::class, [
+            $this->components[$key] = app(InputInterface::class, [
                 "field" => $field,
             ])->getInputField();
         }
-        return $components;
+        return $this;
     }
 
     protected function setUp(): void
