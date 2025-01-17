@@ -15,7 +15,7 @@ class Form
     protected DomainModelInterface $Dmodel;
     protected string|null $classModel;
 
-    public function __construct(?DomainModel $dm)
+    public function __construct(?DomainModel $dm = null)
     {
         $class = $dm ?? ($this->classModel ?? null);
 
@@ -23,7 +23,7 @@ class Form
         $this->setUp();
     }
 
-    public static function make(?DomainModel $dm): static
+    public static function make(?DomainModel $dm = null): static
     {
         $static = app(static::class, ["dm" => $dm]);
 
