@@ -23,7 +23,7 @@ class Form
         $this->setUp();
     }
 
-    public static function make(?DomainModel|null $dm): static
+    public static function make(?DomainModel $dm): static
     {
         $static = app(static::class, ["dm" => $dm]);
 
@@ -35,8 +35,7 @@ class Form
         try {
             if (is_string($class) and class_exists($class)) {
                 $this->Dmodel = $class::make();
-            }
-            else ($class instanceof DomainModel) {
+            } elseif ($class instanceof DomainModel) {
                 $this->Dmodel = $class;
             }
         } catch (Exception $e) {
