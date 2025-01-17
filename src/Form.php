@@ -83,7 +83,7 @@ class Form
         return $this->getComponents();
     }
 
-    public function applyRules(Rules ...$rules): void
+    public function applyRules(Rules ...$rules): self
     {
         // dd(...$rules);
 
@@ -97,5 +97,6 @@ class Form
                 }
             }
         }
+        return $this;
     }
 }
