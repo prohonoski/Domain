@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Domain\Base;
+namespace Proho\Domain;
 
 class Rules
 {
     protected array $rules = [];
 
-    public static function make($rules): static
+    public static function make($rules = []): static
     {
         $static = app(static::class);
         $static->configure($rules);
@@ -14,7 +14,7 @@ class Rules
         return $static;
     }
 
-    public function configure($rules)
+    public function configure($rules = [])
     {
         foreach ($rules as $key => $rule) {
             $this->rules[$key] = $rule;
