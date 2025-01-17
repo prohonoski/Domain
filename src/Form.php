@@ -15,7 +15,7 @@ class Form
     protected DomainModelInterface $Dmodel;
     protected string|null $classModel;
 
-    public function __construct(?DomainModel|null $dm)
+    public function __construct(?DomainModel $dm)
     {
         $class = $dm ?? ($this->classModel ?? null);
 
