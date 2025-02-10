@@ -13,15 +13,27 @@ use Proho\Domain\Adapters\RulesFilament\RequiredWith;
 use Proho\Domain\Adapters\RulesFilament\RuleDefault;
 use Filament\Forms\Components\Field;
 use Illuminate\Support\Facades\Log;
+use Proho\Domain\Adapters\RulesFilament\CustomRule;
 
 class RulesFilamentAdapter
 {
-    public static function make(Field $field, string $rule): Field
+    public static function make(Field $field, string|array $rule): Field
     {
-        $rule .= "|";
+        if (is_array($rule)) {
+            $ar_rule = $rule;
+        } else {
+            $rule .= "|";
+            $ar_rule = explode("|", $rule);
+        }
 
-        foreach (explode("|", $rule) as $key => $value) {
+        foreach ($ar_rule as $key => $value) {
             $rule_str = $value;
+
+            //se for uma custom Rule atribui diretamente
+            if (!is_string($value)) {
+                $field = CustomRule::make($field, $value);
+                continue;
+            }
 
             if (strpos($value, ":") !== false) {
                 $tmp_rule = explode(":", $value);
@@ -33,7 +45,7 @@ class RulesFilamentAdapter
                 continue;
             }
 
-            Log::debug($value . $rule_str);
+            //Log::debug($value . $rule_str);
             match ($rule_str) {
                 "required" => ($field = Required::make($field, $value)),
                 "required_with" => ($field = RequiredWith::make(

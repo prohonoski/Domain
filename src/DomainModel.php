@@ -18,8 +18,26 @@ class DomainModel implements DomainModelInterface
     protected ValidatorInterface $validator;
 
     protected static string $domainService = "";
+    protected string $fieldLabel = "id";
 
     private array $fields;
+
+    public function getFieldLabel(): string
+    {
+        return $this->fieldLabel;
+    }
+    /**
+     * Definir o campo identificador da tabela, preferencia por campos unicos
+     *
+     * campo pode ser utilizado em varios locais como por exemplo query automatica para select
+
+     * @return self
+     */
+    public function setFieldLabel(string $fieldLabel): self
+    {
+        $this->fieldLabel = $fieldLabel;
+        return $this;
+    }
 
     public function validate(array $data, array $fieldRules = []): self
     {
@@ -70,9 +88,7 @@ class DomainModel implements DomainModelInterface
         $this->updateFields();
     }
 
-    protected function setUp(): void
-    {
-    }
+    protected function setUp(): void {}
 
     public function updateInsert(array $dataRows, array $keys)
     {

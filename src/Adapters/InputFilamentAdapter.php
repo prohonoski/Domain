@@ -11,7 +11,11 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Actions\Action;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
+use PhpParser\Node\Expr\Instanceof_;
+use Proho\Domain\Interfaces\FieldInterface;
+use Proho\Domain\Service;
 
 class InputFilamentAdapter
 {
@@ -22,7 +26,7 @@ class InputFilamentAdapter
         return $this->inputField;
     }
 
-    function __construct(Field $field)
+    function __construct(FieldInterface $field)
     {
         $this->inputField = null;
 
@@ -42,6 +46,10 @@ class InputFilamentAdapter
             FieldTypesEnum::Date => ($this->inputField = DatePicker::make(
                 $field->getName()
             )->displayFormat("d/m/Y")),
+            FieldTypesEnum::DateTime
+                => ($this->inputField = DateTimePicker::make(
+                $field->getName()
+            )->displayFormat("d/m/Y H:i")),
             FieldTypesEnum::Radio => ($this->inputField = Radio::make(
                 $field->getName()
             )->options($field->getOptions())),
@@ -97,6 +105,11 @@ class InputFilamentAdapter
 
                 if (is_array($field->getOptions())) {
                     $this->inputField->options($field->getOptions());
+                } elseif (
+                    is_object($field->getOptions()) &&
+                    $field->getOptions() instanceof Service
+                ) {
+                    $this->inputField->options($field->getOptions()->query());
                 } elseif (class_exists($field->getOptions())) {
                     $this->inputField->options(
                         $field->getOptions()::service()->query()

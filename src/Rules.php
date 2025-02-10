@@ -23,9 +23,7 @@ class Rules
         $this->setUp();
     }
 
-    protected function setUp(): void
-    {
-    }
+    protected function setUp(): void {}
 
     public function getRules(): array
     {

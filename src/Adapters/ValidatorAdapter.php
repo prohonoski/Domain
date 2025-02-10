@@ -35,9 +35,7 @@ class ValidatorAdapter implements ValidatorInterface
         $this->setUp();
     }
 
-    public function setUp()
-    {
-    }
+    public function setUp() {}
 
     // public function validate(array $data, array $options): self
     // {
@@ -61,19 +59,24 @@ class ValidatorAdapter implements ValidatorInterface
         return $this;
     }
 
-    public function validate(array $data, array $options): self
-    {
+    public function validate(
+        array $data,
+        array $options,
+        array $messages = []
+    ): self {
         $id = 0;
 
         foreach ($data as $key => $row) {
             $custom_id = null;
+
             foreach ($this->identify as $key => $value) {
                 $custom_id .= $row[$value] . "|";
             }
 
             $this->validatorList[$custom_id ?? $id] = Validator::make(
                 $row,
-                $options
+                $options,
+                $messages
             );
 
             $id++;

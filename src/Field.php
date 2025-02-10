@@ -61,7 +61,7 @@ class Field implements FieldInterface
         return $this->name;
     }
 
-    public function getOptions(): string|array|null
+    public function getOptions(): string|array|null|Service
     {
         return $this->options ?? null;
     }
@@ -109,9 +109,7 @@ class Field implements FieldInterface
         $this->setUp();
     }
 
-    protected function setUp(): void
-    {
-    }
+    protected function setUp(): void {}
 
     //    private array $options;
 

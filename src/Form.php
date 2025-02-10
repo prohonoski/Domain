@@ -5,6 +5,7 @@ namespace Proho\Domain;
 use Proho\Domain\Adapters\RulesFilamentAdapter;
 use Proho\Domain\Interfaces\DomainModelInterface;
 use Proho\Domain\Interfaces\InputInterface;
+use Proho\Domain\Adapters\ColumnFilamentAdapter;
 
 use Exception;
 
@@ -46,14 +47,53 @@ class Form
         return $this;
     }
     /**
+     * Cria um formulario com os componentes já definidos e aplica as rules do model
+     *
+     *
+     * @return array<string, Field>
+     */
+    public function autoForm(): self
+    {
+        $this->autoComponents();
+        $this->applyRules($this->Dmodel->getFieldRules());
+        return $this;
+    }
+
+    /**
+     * Cria uma tabela com os componentes já definidos no model
+     *
+     *
+     * @return self
+     */
+    public function autoTable(): self
+    {
+        $fields = $this->Dmodel->getFields();
+
+        foreach ($fields as $key => $field) {
+            if (!$field->isFillable()) {
+                continue;
+            }
+
+            $this->components[$key] = ColumnFilamentAdapter::make(
+                $field
+            )->getColumnField();
+        }
+
+        // $this->components["id"] = ColumnFilamentAdapter::make(
+        //     $fields["id"]
+        // )->getColumnField();
+        return $this;
+    }
+
+    /**
      * Cria os componentes conforme as definições do DomainModel
      *
      * Utiliza o DomainModel previamente associado e cria os componentes setados para Fillable.
      * A chave do array de retorno é o nome do campo
      *
-     * @return array<string, Field>
+     * @return self
      */
-    public function autoForm(): self
+    public function autoComponents(): self
     {
         $this->components = [];
 
@@ -69,9 +109,7 @@ class Form
         return $this;
     }
 
-    protected function setUp(): void
-    {
-    }
+    protected function setUp(): void {}
 
     public function getComponents(): array
     {
@@ -83,13 +121,19 @@ class Form
         return $this->getComponents();
     }
 
+    public function get(): array
+    {
+        return $this->components;
+    }
+
     public function applyRules(Rules ...$rules): self
     {
-        // dd(...$rules);
+        //dd($rules);
 
         foreach ($rules as $key => $rule) {
             foreach ($rule->getRules() as $keyR => $valueR) {
                 if (isset($this->components[$keyR])) {
+                    //dd($valueR);
                     $this->components[$keyR] = RulesFilamentAdapter::make(
                         $this->components[$keyR],
                         $valueR

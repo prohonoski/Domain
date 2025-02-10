@@ -17,7 +17,7 @@ class Gte
 
         //        if ($field instanceof TextInput) {
 
-        $field->minValue(3);
+        $field->minValue($size);
         //}
         return $field;
     }

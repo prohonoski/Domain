@@ -4,7 +4,9 @@ namespace Proho\Domain\Adapters;
 
 use Proho\Domain\Enums\FieldTypesEnum;
 use Filament\Tables\Columns\TextColumn;
+
 use Proho\Domain\Field;
+use Proho\Domain\Interfaces\FieldInterface;
 
 class ColumnFilamentAdapter
 {
@@ -15,7 +17,7 @@ class ColumnFilamentAdapter
         return $this->columnField;
     }
 
-    function __construct(Field $field)
+    function __construct(FieldInterface $field)
     {
         $this->columnField = null;
 
@@ -31,13 +33,20 @@ class ColumnFilamentAdapter
             FieldTypesEnum::Decimal => ($this->columnField = TextColumn::make(
                 $field->getName()
             )
-                ->numeric(decimalPlaces: 2)
+                //->numeric(decimalPlaces: 2)
                 ->alignRight()),
             FieldTypesEnum::Integer => ($this->columnField = TextColumn::make(
                 $field->getName()
             )
-                ->numeric()
+                // ->numeric()
                 ->alignRight()),
+            FieldTypesEnum::DateTime => ($this->columnField = TextColumn::make(
+                $field->getName()
+            )
+                ->dateTime("d/m/Y H:i:s")
+                // ->numeric()
+                ->alignRight()),
+            default => dd([$field->getType(), $field->getName()]),
         };
 
         if ($this->columnField) {
@@ -45,7 +54,7 @@ class ColumnFilamentAdapter
         }
     }
 
-    public static function make(Field $field): self
+    public static function make(FieldInterface $field): self
     {
         $static = app(static::class, ["field" => $field]);
         return $static;

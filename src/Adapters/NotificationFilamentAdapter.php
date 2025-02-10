@@ -28,9 +28,7 @@ class NotificationFilamentAdapter implements NotificationInterface
         $this->setUp();
     }
 
-    public function setUp()
-    {
-    }
+    public function setUp() {}
 
     public function mountMessagesForHtml(array $identify, array $messageBags)
     {
@@ -40,16 +38,25 @@ class NotificationFilamentAdapter implements NotificationInterface
             if (count($value->getMessages()) > 0) {
                 $idsList = explode("|", $value->getMessages()["identify"][0]);
 
+                //dd([$idsList, $identify]);
+
                 foreach ($identify as $idr => $idv) {
-                    $message .= $idv . ": " . $idsList[$idr] . " ";
+                    $message .=
+                        ($message != "" ? "<br />" : "") .
+                        ($idv !== "" ? $idv . ": " : "") .
+                        $idsList[$idr];
                 }
 
-                $message .= $message != "" ? "<li>" . $message . "</li>" : "";
+                // $message .= $message != "" ? "<li>" . $message . "</li>" : "";
+
+                log::debug($message);
                 // if ($message == "<br>") {
                 //     $message .= "</br>";
                 // } else {
                 //     $message = "";
                 // }
+
+                //  dd($value->getMessages());
 
                 foreach ($value->getMessages() as $keym => $valuem) {
                     if ($keym == "identify") {
@@ -59,6 +66,8 @@ class NotificationFilamentAdapter implements NotificationInterface
                         $message .= "<li>" . $valuem2 . "</li>";
                     }
                 }
+
+                //dd($message);
             }
         }
 
@@ -75,7 +84,8 @@ class NotificationFilamentAdapter implements NotificationInterface
         foreach ($validators as $validator) {
             if ($validator->notifyType() != "none") {
                 $this->notifyFail(
-                    $validator->getService()->getLabel(),
+                    "", //$validator->getService()->getLabel(),
+                    //implode("-", $validator->messagesAll())
                     $this->mountMessagesForHtml(
                         array_keys($validator->getIdentify()),
                         $validator->messagesAll()
@@ -90,13 +100,14 @@ class NotificationFilamentAdapter implements NotificationInterface
         $validators = $this->getValidatorByType("success", ...$validators);
 
         $body = "Operação concluída: ";
+        $title = "";
 
         foreach ($validators as $validator) {
             if ($validator->notifyType() != "none") {
                 if ($validator->notifyType() != "parent") {
-                    $title = $validator->getService()->getLabel();
+                    $title = ""; //$validator->getService()->getLabel();
                 }
-                $body .= $validator->getService()->getLabel();
+                $body .= ""; //$validator->getService()->getLabel();
             }
         }
 
@@ -137,11 +148,11 @@ class NotificationFilamentAdapter implements NotificationInterface
     public function notifyValidator(ValidatorInterface ...$validators)
     {
         foreach ($validators as $validator) {
-            log::debug(
-                $validator->getService()->notifyType() . $validator::class
-            );
+            // log::debug(
+            //     $validator->getService()->notifyType() . $validator::class
+            // );
 
-            $title = $validator->getService()->getLabel();
+            $title = ""; //$validator->getService()->getLabel();
             $body = null;
 
             if ($validator->fails()) {
@@ -176,8 +187,8 @@ class NotificationFilamentAdapter implements NotificationInterface
         } else {
             foreach ($validators as $validator) {
                 if (
-                    $validator->getService()->notifyType() != "none" &&
-                    $validator->getService()->notifyType() != "parent"
+                    $validator->notifyType() != "none" &&
+                    $validator->notifyType() != "parent"
                 ) {
                     $this->notifyValidatorSuccess($validator);
                 }

@@ -39,7 +39,42 @@ class Service implements DomainServiceInterface
         //$this->execute();
     }
 
-    public function query(?array $params = []): array
+    public static function make(
+        ?DomainModelInterface $domainModel = null
+    ): DomainServiceInterface {
+        $serviceClass = static::class;
+
+        $service = app($serviceClass, [
+            "dm" => $domainModel ?? static::$domainClass::make(),
+            "params" => $params ?? [],
+        ]);
+
+        return $service;
+    }
+
+    public static function service(
+        ?DomainModelInterface $domainModel = null
+    ): DomainServiceInterface {
+        $serviceClass = static::class;
+
+        $dm = $domainModel ?? static::$domainClass::make();
+
+        $service = app($serviceClass, [
+            "dm" => $dm,
+            "params" => $params ?? [],
+        ]);
+
+        return $service;
+    }
+
+    /**
+     * Cria uma lista com id e label identificador para utilizar em select
+     *
+     * Deve ser sobrescrito com a real utilidade do service query
+
+     * @return array
+     */
+    public function query(array $params = []): array
     {
         return [];
     }
@@ -91,7 +126,7 @@ class Service implements DomainServiceInterface
         //     dd($this->notifyType);
         // }
 
-        Log::debug("notifiy  type " . $this->notifyType);
+        // Log::debug("notifiy  type " . $this->notifyType);
 
         if ($this->notifyType != "none" && $this->notifyType != "parent") {
             // if ($this instanceof PessoaBatchUpdate) {
@@ -182,18 +217,6 @@ class Service implements DomainServiceInterface
         }
     }
 
-    public static function service(
-        ?DomainModelInterface $domainModel = null
-    ): DomainServiceInterface {
-        $serviceClass = static::class;
-
-        $service = app($serviceClass, [
-            "dm" => $domainModel ?? static::$domainClass::make(),
-            "params" => $params ?? [],
-        ]);
-
-        return $service;
-    }
     public function setLabel(string $label): self
     {
         $this->label = $label;
