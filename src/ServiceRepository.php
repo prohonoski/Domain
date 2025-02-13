@@ -4,10 +4,6 @@ namespace Proho\Domain;
 
 use Proho\Domain\Interfaces\ServiceRepositoryInterface;
 use Proho\Domain\Interfaces\ValidatorInterface;
-use App\Models\Sistema\Context;
-use App\ORM\Entities\EnsinoExec\SolicitacaoMaterialEntity;
-use DateTime;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\EntityManager;
 
@@ -17,7 +13,6 @@ class ServiceRepository implements ServiceRepositoryInterface
     protected ValidatorInterface $validator;
     protected ServiceRepositoryInterface $child;
     protected EntityManager $em;
-
     protected EntityRepository $er;
 
     function __construct(protected $params, protected $parent)
