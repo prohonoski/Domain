@@ -21,6 +21,11 @@ class Field implements FieldInterface
         "type" => FieldTypesEnum::String,
     ];
 
+    public function getColumnAttr(): array
+    {
+        return [];
+    }
+
     public function getDatalist(): string|array|null
     {
         return $this->datalist ?? null;

@@ -66,48 +66,50 @@ class ColumnFilamentAdapter
             ]),
         };
 
-        if ($this->columnField->getName() == "situacao") {
-            foreach ($field->getColumnAttr() as $key => $value) {
-                if (isset($value->getArguments()["enumType"])) {
-                    //   dd($value->getArguments()["enumType"]);
-                    //
-                    //
+        //    if ($this->columnField->getName() == "situacao") {
+        foreach ($field->getColumnAttr() as $key => $value) {
+            if (isset($value->getArguments()["enumType"])) {
+                //   dd($value->getArguments()["enumType"]);
+                //
+                //
 
-                    $this->columnField
-                        ->enum($value->getArguments()["enumType"]::toArray())
-                        //->colors(
-                        // [
-                        //     "primary" => static fn(
-                        //         $state
-                        //     ): bool => $state == 1 || $state == 4,
-                        // ]
+                $this->columnField->enum(
+                    $value->getArguments()["enumType"]::toArray()
+                );
+                //->colors(
+                // [
+                //     "primary" => static fn(
+                //         $state
+                //     ): bool => $state == 1 || $state == 4,
+                // ]
 
-                        ->colors(static function ($state) use ($value) {
-                            dd("aaa");
-                            dd(
-                                $value
-                                    ->getArguments()
-                                    ["enumType"]::getColors(["state" => $state])
-                            );
+                // ->colors(static function ($state) use ($value) {
+                //     dd("aaa");
+                //     dd(
+                //         $value
+                //             ->getArguments()
+                //             ["enumType"]::getColors(["state" => $state])
+                //     );
 
-                            return $value
-                                ->getArguments()
-                                ["enumType"]::getColors($state);
-                        });
-                    //);
-                    // ->colors([
-                    //     "primary" => static fn($state): bool => $state ==
-                    //         1 || $state == 4,
-                    //     "warning" => static fn($state): bool => $state == 2,
-                    //     "success" => static fn($state): bool => $state == 3,
-                    //     "secondary" => static fn($state): bool => in_array(
-                    //         $state,
-                    //         [5, 6, 7]
-                    //     ),
-                    // ]);
-                }
+                //     return $value
+                //         ->getArguments()
+                //         ["enumType"]::getColors($state);
+                // }
+                //);
+                //);
+                // ->colors([
+                //     "primary" => static fn($state): bool => $state ==
+                //         1 || $state == 4,
+                //     "warning" => static fn($state): bool => $state == 2,
+                //     "success" => static fn($state): bool => $state == 3,
+                //     "secondary" => static fn($state): bool => in_array(
+                //         $state,
+                //         [5, 6, 7]
+                //     ),
+                // ]);
             }
         }
+        //}
 
         if ($this->columnField) {
             $this->columnField->label($field->getLabel());
