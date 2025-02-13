@@ -18,12 +18,15 @@ class ServiceRepository implements ServiceRepositoryInterface
     protected ServiceRepositoryInterface $child;
     protected EntityManager $em;
 
+    protected EntityRepository $er;
+
     function __construct(protected $params, protected $parent)
     {
         if ($parent instanceof EntityManager) {
             $this->em = $parent;
         } elseif ($parent instanceof EntityRepository) {
             $this->em = $parent->getEm();
+            $this->er = $parent;
         }
 
         $this->result = [];

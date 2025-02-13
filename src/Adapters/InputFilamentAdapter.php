@@ -63,7 +63,37 @@ class InputFilamentAdapter
                 $field->getName()
             )),
         };
-
+        if (
+            in_array($field->getType(), [
+                FieldTypesEnum::Radio,
+                FieldTypesEnum::Select,
+            ])
+        ) {
+            foreach ($field->getColumnAttr() as $key => $value) {
+                if (isset($value->getArguments()["enumType"])) {
+                    $this->inputField->options(
+                        $value->getArguments()["enumType"]::toArray()
+                    );
+                    //->colors(
+                    // [
+                    //     "primary" => static fn(
+                    //         $state
+                    //     ): bool => $state == 1 || $state == 4,
+                    // ];
+                    //);
+                    // ->colors([
+                    //     "primary" => static fn($state): bool => $state ==
+                    //         1 || $state == 4,
+                    //     "warning" => static fn($state): bool => $state == 2,
+                    //     "success" => static fn($state): bool => $state == 3,
+                    //     "secondary" => static fn($state): bool => in_array(
+                    //         $state,
+                    //         [5, 6, 7]
+                    //     ),
+                    // ]);
+                }
+            }
+        }
         if ($this->inputField) {
             $this->inputField->label(
                 $field->getLabel() === ""

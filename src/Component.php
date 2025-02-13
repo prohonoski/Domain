@@ -14,7 +14,8 @@ class Component implements FieldInterface
         public ?bool $visible = null,
         public ?string $label = null,
         public ?string $name = null,
-        public ?string $hint = null
+        public ?string $hint = null,
+        public ?array $columnAttr = null
     ) {
         $this->fill = $fill ?? true;
         $this->visible = $fill ?? true;
@@ -25,15 +26,26 @@ class Component implements FieldInterface
         return $this->type;
     }
 
-    public function setName(string $name): self
-    {
-        $this->name = $name;
-        return $this;
-    }
-
     public function setLabel(string $name): self
     {
         $this->label = $name;
+        return $this;
+    }
+
+    public function setColumnAttr(array $column): self
+    {
+        $this->columnAttr = $column;
+        return $this;
+    }
+
+    public function getColumnAttr(): array|null
+    {
+        return $this->columnAttr;
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
         return $this;
     }
 

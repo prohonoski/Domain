@@ -3,14 +3,12 @@
 namespace Proho\Domain;
 
 use Proho\Domain\Adapters\RulesFilamentAdapter;
-use Proho\Domain\Interfaces\DomainModelInterface;
+
 use Proho\Domain\Interfaces\InputInterface;
 use Proho\Domain\Adapters\ColumnFilamentAdapter;
 use ReflectionClass;
 
-use Exception;
 use LaravelDoctrine\ORM\Facades\EntityManager;
-use phpDocumentor\Reflection\Types\Compound;
 
 class FormORM
 {
@@ -50,6 +48,10 @@ class FormORM
     public function autoTable(): self
     {
         foreach ($this->getFields() as $propriedade) {
+            $ORMColumnAttributes = $propriedade->getAttributes(
+                \Doctrine\ORM\Mapping\Column::class
+            );
+
             //Pega os atributos dessa propriedade em especifico
             $atributosDaPropriedade = $propriedade->getAttributes(
                 Component::class
@@ -65,6 +67,7 @@ class FormORM
                 }
 
                 $field = $atributo->newInstance();
+                $field->setColumnAttr($ORMColumnAttributes);
                 $field->setName($field->getName() ?? $propriedade->getName());
                 $field->setLabel($field->getLabel() ?? $propriedade->getName());
             }
@@ -103,11 +106,11 @@ class FormORM
 
         foreach ($this->getFields() as $propriedade) {
             //Mostra o nome da propriedade
-            $atributosDaPropriedade = $propriedade->getAttributes(
+            $ORMColumnAttributes = $propriedade->getAttributes(
                 \Doctrine\ORM\Mapping\Column::class
             );
 
-            foreach ($atributosDaPropriedade as $atributo) {
+            foreach ($ORMColumnAttributes as $atributo) {
                 $mapColumn = $atributo->newInstance();
             }
             //Pega os atributos dessa propriedade em especifico
@@ -117,6 +120,7 @@ class FormORM
             // //Percorre os atributos definidos na propriedade
             foreach ($atributosDaPropriedade as $atributo) {
                 $field = $atributo->newInstance();
+                $field->setColumnAttr($ORMColumnAttributes);
                 $field->setName($field->getName() ?? $propriedade->getName());
                 $field->setLabel($field->getLabel() ?? $propriedade->getName());
                 $field->setHint(
