@@ -9,4 +9,13 @@ class ServiceRepositoryParam
         public array $params = [],
         public array $rules = []
     ) {}
+
+    public static function make(
+        array $dataRows = [],
+        array $params = [],
+        array $rules = []
+    ) {
+        $static = new ServiceRepositoryParam($dataRows, $params, $rules);
+        return $static;
+    }
 }
