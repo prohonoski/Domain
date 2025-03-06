@@ -49,7 +49,7 @@ class NotificationFilamentAdapter implements NotificationInterface
 
                 // $message .= $message != "" ? "<li>" . $message . "</li>" : "";
 
-                log::debug($message);
+                //log::debug($message);
                 // if ($message == "<br>") {
                 //     $message .= "</br>";
                 // } else {
@@ -84,7 +84,9 @@ class NotificationFilamentAdapter implements NotificationInterface
         foreach ($validators as $validator) {
             if ($validator->notifyType() != "none") {
                 $this->notifyFail(
-                    "", //$validator->getService()->getLabel(),
+                    //"",
+                    $validator->getService()->getLabel() ??
+                        get_class($validator->getService()),
                     //implode("-", $validator->messagesAll())
                     $this->mountMessagesForHtml(
                         array_keys($validator->getIdentify()),
@@ -99,15 +101,15 @@ class NotificationFilamentAdapter implements NotificationInterface
     {
         $validators = $this->getValidatorByType("success", ...$validators);
 
-        $body = "Operação concluída: ";
+        $body = "Operação concluída.";
         $title = "";
 
         foreach ($validators as $validator) {
             if ($validator->notifyType() != "none") {
                 if ($validator->notifyType() != "parent") {
-                    $title = ""; //$validator->getService()->getLabel();
+                    $title = $validator->getService()->getLabel();
                 }
-                $body .= ""; //$validator->getService()->getLabel();
+                $body .= " " . $validator->getService()->getDescription();
             }
         }
 
@@ -185,16 +187,7 @@ class NotificationFilamentAdapter implements NotificationInterface
         if ($this->anyValidatorFail($validators)) {
             $this->notifyValidatorFail(...$validators);
         } else {
-            foreach ($validators as $validator) {
-                if (
-                    $validator->notifyType() != "none" &&
-                    $validator->notifyType() != "parent"
-                ) {
-                    $this->notifyValidatorSuccess($validator);
-                }
-            }
-
-            //$this->notifyValidatorSuccess(...$validators);
+            $this->notifyValidatorSuccess($validators[count($validators) - 1]);
         }
     }
 

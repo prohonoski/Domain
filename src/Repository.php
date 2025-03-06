@@ -165,8 +165,10 @@ class Repository extends EntityRepository
             "parent" => $this,
             "params" => $params,
         ]);
-
-        if (!$service->anyValidatorFail()) {
+        if (
+            !$service->anyValidatorFail() &&
+            ($params->params["flush"] ?? false)
+        ) {
             $this->getEntityManager()->flush();
         }
 
@@ -176,5 +178,42 @@ class Repository extends EntityRepository
     public function getEm(): EntityManagerInterface
     {
         return $this->getEntityManager();
+    }
+
+    public function findOptions(mixed $id, array $fields): array
+    {
+        $select_fields = "a." . $id;
+
+        foreach ($fields as $field) {
+            if ($select_fields == "") {
+                $select_fields .= "a." . $field;
+            } else {
+                $select_fields .= ", a." . $field;
+            }
+        }
+
+        $query = $this->getEm()->createQuery(
+            "SELECT " .
+                $select_fields .
+                " FROM " .
+                $this->getEntityName() .
+                " a"
+        );
+
+        $options = [];
+
+        foreach ($query->getResult() as $row) {
+            $value = "";
+            foreach ($fields as $field) {
+                if ($value == "") {
+                    $value .= $row[$field];
+                } else {
+                    $value .= ", " . $row[$field];
+                }
+            }
+            $options[$row[$id]] = $value;
+        }
+
+        return $options;
     }
 }

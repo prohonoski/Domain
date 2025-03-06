@@ -13,6 +13,7 @@ class TextDateColumnAdapter implements TextColumnInterface
         return TextColumn::make($field->getName())
             ->dateTime("d/m/Y")
             ->label($field->getLabel())
+            ->sortable($field->isSortable())
             ->alignRight();
     }
 }

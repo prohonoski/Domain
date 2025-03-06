@@ -15,7 +15,8 @@ class Component implements FieldInterface
         public ?string $label = null,
         public ?string $name = null,
         public ?string $hint = null,
-        public ?array $columnAttr = null
+        public ?array $columnAttr = null,
+        public ?bool $sortable = false
     ) {
         $this->fill = $fill ?? true;
         $this->visible = $fill ?? true;
@@ -57,6 +58,11 @@ class Component implements FieldInterface
     public function isFillable(): bool
     {
         return $this->fill;
+    }
+
+    public function isSortable(): bool
+    {
+        return $this->sortable;
     }
 
     public function getLabel(): string|bool|null

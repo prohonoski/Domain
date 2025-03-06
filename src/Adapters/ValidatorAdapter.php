@@ -5,6 +5,7 @@ namespace Proho\Domain\Adapters;
 use Proho\Domain\Interfaces\ValidatorInterface;
 use Proho\Domain\Service;
 use Illuminate\Support\Facades\Validator;
+use Proho\Domain\Interfaces\ServiceRepositoryInterface;
 
 class ValidatorAdapter implements ValidatorInterface
 {
@@ -13,7 +14,7 @@ class ValidatorAdapter implements ValidatorInterface
     private array $identify = [];
     private bool $notify = true;
     private string $notifyType = "all";
-    private ?Service $service;
+    private ?ServiceRepositoryInterface $service;
 
     function __construct(Validator $validator)
     {
@@ -69,8 +70,12 @@ class ValidatorAdapter implements ValidatorInterface
         foreach ($data as $key => $row) {
             $custom_id = null;
 
-            foreach ($this->identify as $key => $value) {
-                $custom_id .= $row[$value] . "|";
+            foreach ($this->getIdentify() as $key2 => $value) {
+                if ($value == "row") {
+                    $custom_id .= $key + 1 . "|";
+                } else {
+                    $custom_id .= $row[$value] . "|";
+                }
             }
 
             $this->validatorList[$custom_id ?? $id] = Validator::make(
@@ -128,7 +133,7 @@ class ValidatorAdapter implements ValidatorInterface
     }
     public function getIdentify()
     {
-        return $this->identify;
+        return $this->identify ? $this->identify : ["Linha" => "row"];
     }
 
     public function notifyType(): string
@@ -142,13 +147,13 @@ class ValidatorAdapter implements ValidatorInterface
         return $this;
     }
 
-    public function setService(Service $service): self
+    public function setService(ServiceRepositoryInterface $service): self
     {
         $this->service = $service;
         return $this;
     }
 
-    public function getService(): Service
+    public function getService(): ServiceRepositoryInterface
     {
         return $this->service;
     }

@@ -2,6 +2,7 @@
 
 namespace Proho\Domain;
 
+use App\Domain\Patrimonio\Almoxarifado\Services\AlmoxarifadoFindOrCreateSipacService;
 use Proho\Domain\Interfaces\ServiceRepositoryInterface;
 use Proho\Domain\Interfaces\ValidatorInterface;
 use Doctrine\ORM\EntityRepository;
@@ -11,9 +12,11 @@ class ServiceRepository implements ServiceRepositoryInterface
 {
     protected $result = [];
     protected ValidatorInterface $validator;
-    protected ServiceRepositoryInterface $child;
+    protected array $child;
     protected EntityManager $em;
     protected EntityRepository $er;
+    public static string $label = "";
+    public static string $description = "";
 
     function __construct(protected $params, protected $parent)
     {
@@ -26,6 +29,12 @@ class ServiceRepository implements ServiceRepositoryInterface
 
         $this->result = [];
         $this->validator = $this->validator ?? app(ValidatorInterface::class);
+        $this->validator->setService($this);
+
+        if (static::$label == "") {
+            $pos = strrpos(get_class($this), "\\");
+            static::$label = substr(get_class($this), $pos + 1);
+        }
 
         $this->execute();
     }
@@ -45,6 +54,16 @@ class ServiceRepository implements ServiceRepositoryInterface
         return $this->result;
     }
 
+    public function getLabel(): string
+    {
+        return static::$label;
+    }
+
+    public function getDescription(): string
+    {
+        return static::$description;
+    }
+
     public function getValidator(): ValidatorInterface
     {
         return $this->validator;
@@ -52,16 +71,20 @@ class ServiceRepository implements ServiceRepositoryInterface
 
     public function getAllValidator(array &$validators = []): array
     {
-        if ($this->getChild()) {
-            $this->getChild()->getAllValidator($validators);
+        foreach ($this->getChild() as $child) {
+            $child->getAllValidator($validators);
         }
+
         $validators[] = $this->getValidator();
         return $validators;
     }
 
-    public function getChild(): ServiceRepositoryInterface|null
+    /**
+     * @return ServiceRepositoryInterface[]
+     */
+    public function getChild(): array
     {
-        return $this->child ?? null;
+        return $this->child ?? [];
     }
 
     public function anyValidatorFail(
@@ -73,12 +96,27 @@ class ServiceRepository implements ServiceRepositoryInterface
 
         if ($service->getValidator()->fails()) {
             return true;
-        } elseif ($service->getChild()) {
-            if ($this->anyValidatorFail($service->child)) {
-                return true;
+        } else {
+            $validators = $this->getAllValidator();
+            foreach ($validators as $validator) {
+                if ($validator->fails()) {
+                    return true;
+                }
             }
         }
 
+        // if ($service->getChild()) {
+        //     if ($this->anyValidatorFail($service->child)) {
+        //         return true;
+        //     }
+        // }
+
         return false;
+    }
+
+    public function addChild(ServiceRepositoryInterface $service): self
+    {
+        $this->child[] = $service;
+        return $this;
     }
 }

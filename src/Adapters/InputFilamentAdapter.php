@@ -63,7 +63,19 @@ class InputFilamentAdapter
                 $field->getName()
             )),
         };
-        if (
+
+        if (in_array($field->getType(), [FieldTypesEnum::String])) {
+            foreach ($field->getColumnAttr() as $key => $value) {
+                if (
+                    isset($value->getArguments()["length"]) &&
+                    is_numeric($value->getArguments()["length"])
+                ) {
+                    $this->inputField->maxLength(
+                        $value->getArguments()["length"]
+                    );
+                }
+            }
+        } elseif (
             in_array($field->getType(), [
                 FieldTypesEnum::Radio,
                 FieldTypesEnum::Select,

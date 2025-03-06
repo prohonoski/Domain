@@ -12,6 +12,7 @@ class TextNumericColumnAdapter implements TextColumnInterface
     {
         return TextColumn::make($field->getName())
             ->alignRight()
+            ->sortable($field->isSortable())
             ->label($field->getLabel());
     }
 }
