@@ -10,8 +10,8 @@ class TextColumnAdapter implements TextColumnInterface
 {
     public static function make(FieldInterface $field)
     {
-        return TextColumn::make($field->getName())->label(
-            $field->getLabel()->sortable($field->isSortable())
-        );
+        return TextColumn::make($field->getName())
+            ->label($field->getLabel())
+            ->sortable($field->isSortable());
     }
 }

@@ -226,4 +226,9 @@ class Service implements DomainServiceInterface
     {
         return $this->label;
     }
+
+    public function getDescription(): string
+    {
+        return $this->label;
+    }
 }

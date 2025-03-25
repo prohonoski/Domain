@@ -7,6 +7,7 @@ use Proho\Domain\Enums\FieldTypesEnum;
 use Filament\Tables\Columns\TextColumn;
 use OpenSpout\Common\Entity\Comment\TextRun;
 use Proho\Domain\Columns\BadgeColumn as ColumnsBadgeColumn;
+use Proho\Domain\Columns\BadgeColumnAdapter;
 use Proho\Domain\Columns\TextColumnAdapter;
 use Proho\Domain\Columns\TextDateColumnAdapter;
 use Proho\Domain\Columns\TextDateTimeColumnAdapter;
@@ -53,64 +54,14 @@ class ColumnFilamentAdapter
             FieldTypesEnum::Select
                 => ($this->columnField = TextColumnAdapter::make($field)),
             FieldTypesEnum::Radio => ($this->columnField = app(
-                BadgeColumnInterface::class,
-                ["field" => $field]
-            )->generate()),
+                BadgeColumnInterface::class
+            )->make($field)),
             default => dd([
                 "Campo sem correspondencia",
                 $field->getType(),
                 $field->getName(),
             ]),
         };
-
-        //    if ($this->columnField->getName() == "situacao") {
-        // foreach ($field->getColumnAttr() as $key => $value) {
-        //     if (isset($value->getArguments()["enumType"])) {
-        //         //   dd($value->getArguments()["enumType"]);
-        //         //
-        //         //
-
-        //         $this->columnField->enum(
-        //             $value->getArguments()["enumType"]::toArray()
-        //         );
-        //         //->colors(
-        //         // [
-        //         //     "primary" => static fn(
-        //         //         $state
-        //         //     ): bool => $state == 1 || $state == 4,
-        //         // ]
-
-        //         // ->colors(static function ($state) use ($value) {
-        //         //     dd("aaa");
-        //         //     dd(
-        //         //         $value
-        //         //             ->getArguments()
-        //         //             ["enumType"]::getColors(["state" => $state])
-        //         //     );
-
-        //         //     return $value
-        //         //         ->getArguments()
-        //         //         ["enumType"]::getColors($state);
-        //         // }
-        //         //);
-        //         //);
-        //         // ->colors([
-        //         //     "primary" => static fn($state): bool => $state ==
-        //         //         1 || $state == 4,
-        //         //     "warning" => static fn($state): bool => $state == 2,
-        //         //     "success" => static fn($state): bool => $state == 3,
-        //         //     "secondary" => static fn($state): bool => in_array(
-        //         //         $state,
-        //         //         [5, 6, 7]
-        //         //     ),
-        //         // ]);
-        //     }
-        //}
-        //}
-
-        // if ($this->columnField) {
-        //     $this->columnField->label($field->getLabel());
-        // }
     }
 
     public static function make(FieldInterface $field): self
