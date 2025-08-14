@@ -13,6 +13,11 @@ class Field implements FieldInterface
     private string $name;
     private FieldTypesEnum $type;
     public ?bool $sortable = false;
+    public ?bool $searchable = false;
+    public ?bool $toggleable = false;
+    public ?bool $toggledHiddenByDefault = false;
+    public ?bool $wrap = false;
+    public ?array $relation = null;
 
     private array $defaultAttrs = [
         "pk" => false,
@@ -75,6 +80,31 @@ class Field implements FieldInterface
     public function isSortable(): bool
     {
         return $this->sortable;
+    }
+
+    public function getRelation(): string|array|null
+    {
+        return $this->relation ?? null;
+    }
+
+    public function isToggleable(): bool
+    {
+        return $this->toggleable;
+    }
+
+    public function isToggleableHiddenByDefault(): bool
+    {
+        return $this->toggledHiddenByDefault;
+    }
+
+    public function isWrap(): bool
+    {
+        return $this->wrap;
+    }
+
+    public function isSearchable(): bool
+    {
+        return $this->searchable;
     }
 
     public function getType(): FieldTypesEnum
