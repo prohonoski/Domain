@@ -19,7 +19,7 @@ interface DomainModelInterface
     public function where(
         string $field,
         string|null $cond = null,
-        mixed $value = null
+        mixed $value = null,
     ): self;
     public function whereIn(string|null $field, array $value): self;
     public function first(): self;
