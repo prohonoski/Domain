@@ -43,22 +43,22 @@ class ColumnFilamentAdapter
                 => ($this->columnField = TextColumnAdapter::make($field)),
             FieldTypesEnum::Decimal
                 => ($this->columnField = TextNumericColumnAdapter::make(
-                $field
+                $field,
             )),
             FieldTypesEnum::Integer
                 => ($this->columnField = TextNumericColumnAdapter::make(
-                $field
+                $field,
             )),
             FieldTypesEnum::DateTime
                 => ($this->columnField = TextDateTimeColumnAdapter::make(
-                $field
+                $field,
             )),
             FieldTypesEnum::Date
                 => ($this->columnField = TextDateColumnAdapter::make($field)),
             FieldTypesEnum::Select
                 => ($this->columnField = TextColumnAdapter::make($field)),
             FieldTypesEnum::Radio => ($this->columnField = app(
-                BadgeColumnInterface::class
+                BadgeColumnInterface::class,
             )->make($field)),
             default => dd([
                 "Campo sem correspondencia",

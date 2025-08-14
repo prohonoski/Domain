@@ -64,10 +64,10 @@ class Repository extends EntityRepository
                 //         ...$this->getValidator()
                 //     ),
                 "oneSuccess" => $this->notificator->notifyValidatorOneSuccess(
-                    $this->validator
+                    $this->validator,
                 ),
                 default => $this->notificator->notifyValidatorDefault(
-                    $this->validator
+                    $this->validator,
                 ),
             };
         }
@@ -100,7 +100,7 @@ class Repository extends EntityRepository
         foreach ($refl->getProperties() as $propriedade) {
             $generated = [];
             $atributosDaPropriedade = $propriedade->getAttributes(
-                \Doctrine\ORM\Mapping\GeneratedValue::class
+                \Doctrine\ORM\Mapping\GeneratedValue::class,
             );
 
             foreach ($atributosDaPropriedade as $atributo) {
@@ -108,7 +108,7 @@ class Repository extends EntityRepository
             }
 
             $atributosDaPropriedade = $propriedade->getAttributes(
-                \Doctrine\ORM\Mapping\Column::class
+                \Doctrine\ORM\Mapping\Column::class,
             );
 
             foreach ($atributosDaPropriedade as $atributo) {
@@ -124,7 +124,7 @@ class Repository extends EntityRepository
 
             //Mostra o nome da propriedade
             $atributosDaPropriedade = $propriedade->getAttributes(
-                \Proho\Domain\Attributes\Rule::class
+                \Proho\Domain\Attributes\Rule::class,
             );
 
             foreach ($atributosDaPropriedade as $atributo) {
@@ -170,7 +170,7 @@ class Repository extends EntityRepository
                         $type->getName() === $expected)
                 ) {
                     $value = EntityManager::getRepository(
-                        $type->getName()
+                        $type->getName(),
                     )->findOneBy(["id" => $field]);
 
                     //dd("É ou herda de $expected" . $type->getName());
@@ -198,7 +198,7 @@ class Repository extends EntityRepository
     public function service(
         string $class,
         ?ServiceRepositoryInterface $parentService = null,
-        mixed $params = []
+        mixed $params = [],
     ): ServiceRepositoryInterface {
         $service = app($class, [
             "parent" => $this,
@@ -221,12 +221,12 @@ class Repository extends EntityRepository
                     preg_match(
                         '/unique constraint "(.*?)"/i',
                         $message,
-                        $constraintMatch
+                        $constraintMatch,
                     );
                     preg_match(
                         "/Key \((.*?)\)=\((.*?)\)/",
                         $message,
-                        $keyMatch
+                        $keyMatch,
                     );
 
                     if ($constraintMatch && $keyMatch) {
@@ -262,7 +262,7 @@ class Repository extends EntityRepository
     public function findOptions(
         mixed $id,
         array $fields,
-        string $orderBy = null
+        string $orderBy = null,
     ): array {
         $select_fields = "a." . $id;
 
@@ -281,7 +281,7 @@ class Repository extends EntityRepository
                 $this->getEntityName() .
                 " a" .
                 " ORDER BY a." .
-                ($orderBy ? $orderBy : $fields[0])
+                ($orderBy ? $orderBy : $fields[0]),
         );
 
         //$query->$options = [];

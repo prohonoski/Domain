@@ -42,8 +42,8 @@ class FormORM
 
         $this->applyRules(
             Rules::make(
-                EntityManager::getRepository($this->entity)->getEntityRules()
-            )
+                EntityManager::getRepository($this->entity)->getEntityRules(),
+            ),
         );
 
         return $this;
@@ -59,12 +59,12 @@ class FormORM
     {
         foreach ($this->getFields() as $propriedade) {
             $ORMColumnAttributes = $propriedade->getAttributes(
-                \Doctrine\ORM\Mapping\Column::class
+                \Doctrine\ORM\Mapping\Column::class,
             );
 
             //Pega os atributos dessa propriedade em especifico
             $atributosDaPropriedade = $propriedade->getAttributes(
-                Component::class
+                Component::class,
             );
             $field = null;
 
@@ -117,7 +117,7 @@ class FormORM
         foreach ($this->getFields() as $propriedade) {
             //Mostra o nome da propriedade
             $ORMColumnAttributes = $propriedade->getAttributes(
-                \Doctrine\ORM\Mapping\Column::class
+                \Doctrine\ORM\Mapping\Column::class,
             );
 
             foreach ($ORMColumnAttributes as $atributo) {
@@ -125,7 +125,7 @@ class FormORM
             }
             //Pega os atributos dessa propriedade em especifico
             $atributosDaPropriedade = $propriedade->getAttributes(
-                Component::class
+                Component::class,
             );
             // //Percorre os atributos definidos na propriedade
             foreach ($atributosDaPropriedade as $atributo) {
@@ -134,14 +134,14 @@ class FormORM
                 $field->setName($field->getName() ?? $propriedade->getName());
                 $field->setLabel($field->getLabel() ?? $propriedade->getName());
                 $field->setHint(
-                    $field->getHint() ?? ($mapColumn->options["comment"] ?? "")
+                    $field->getHint() ?? ($mapColumn->options["comment"] ?? ""),
                 );
 
                 $this->components[$propriedade->getName()] = app(
                     InputInterface::class,
                     [
                         "field" => $field,
-                    ]
+                    ],
                 )->getInputField();
             }
         }
@@ -182,7 +182,7 @@ class FormORM
                     //dd($valueR);
                     $this->components[$keyR] = RulesFilamentAdapter::make(
                         $this->components[$keyR],
-                        $valueR
+                        $valueR,
                     );
                 }
             }
