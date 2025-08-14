@@ -9,7 +9,7 @@ use Proho\Domain\Interfaces\ServiceRepositoryInterface;
 
 class ValidatorAdapter implements ValidatorInterface
 {
-    private $validator = null;
+    //  private $validator = null;
     private array $validatorList = [];
     private array $identify = [];
     private bool $notify = true;
@@ -22,17 +22,31 @@ class ValidatorAdapter implements ValidatorInterface
         return $this;
     }
 
+    public function errors()
+    {
+        //dd($this->validatorList);
+
+        return reset($this->validatorList)->errors();
+    }
+
+    public function after($callback)
+    {
+        //dd($this->validatorList);
+
+        return reset($this->validatorList)->after($callback);
+    }
+
     public static function make(Validator $validator): self
     {
         $static = app(static::class, [
-            "validator" => $validator,
+            //         "validator" => $validator,
         ]);
         return $static;
     }
 
     public function configure(Validator $validator)
     {
-        $this->validator = $validator;
+        //$this->validatorList[0] = $validator;
         $this->setUp();
     }
 
@@ -77,6 +91,11 @@ class ValidatorAdapter implements ValidatorInterface
                     $custom_id .= $row[$value] . "|";
                 }
             }
+            //dd($options);
+
+            // $x = Validator::make($row, $options, $messages);
+
+            //dd($x);
 
             $this->validatorList[$custom_id ?? $id] = Validator::make(
                 $row,
@@ -92,6 +111,7 @@ class ValidatorAdapter implements ValidatorInterface
     public function failsAny()
     {
         $fails = [];
+
         foreach ($this->validatorList as $key => $value) {
             $fails = $value->fails();
             if ($fails) {
@@ -112,12 +132,11 @@ class ValidatorAdapter implements ValidatorInterface
             // foreach ($identify as $key => $value) {
             //     $msg_identify .= $key .':'.
             // }
-
+            //dd($mb->getMessages());
             if ($mb->getMessages()) {
                 $mb->add("identify", $key);
+                $messages[] = $mb;
             }
-
-            $messages[] = $mb;
         }
         return $messages;
     }

@@ -6,7 +6,7 @@ use Proho\Domain\Interfaces\ServiceRepositoryInterface;
 
 use Proho\Domain\ServiceRepository;
 
-class CreateService extends ServiceRepository implements
+class UpdateService extends ServiceRepository implements
     ServiceRepositoryInterface
 {
     public function execute(): self
@@ -14,7 +14,6 @@ class CreateService extends ServiceRepository implements
         $data = [];
 
         foreach ($this->params->dataRows as $row) {
-            $row["created_at"] = $row["updated_at"] ?? now();
             $row["updated_at"] = $row["updated_at"] ?? now();
             $data[] = $row;
         }
@@ -25,7 +24,18 @@ class CreateService extends ServiceRepository implements
 
         if (!$this->validator->fails()) {
             foreach ($data as $key => $row) {
-                $dataEntity = $srepo->fill($row);
+                // dd($data);
+                $record = $srepo->findOneBy([
+                    "id" => $row["id"] ?? 0,
+                ]);
+
+                if (!$record) {
+                    throw new \Exception("Record not found" . $data["id"] ?? 0);
+                }
+
+                $dataEntity = $srepo->fill($row, $record);
+
+                //dd($dataEntity);
                 $srepo->getEm()->persist($dataEntity);
             }
         }

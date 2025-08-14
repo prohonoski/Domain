@@ -2,6 +2,8 @@
 
 namespace Proho\Domain;
 
+use App\ORM\Entities\BaseEntity;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 
@@ -9,6 +11,11 @@ use Proho\Domain\Interfaces\NotificationInterface;
 use Proho\Domain\Interfaces\ServiceRepositoryInterface;
 use Proho\Domain\Interfaces\ValidatorInterface;
 use ReflectionClass;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Illuminate\Validation\ValidationException;
+use LaravelDoctrine\ORM\Facades\EntityManager;
+use ReflectionMethod;
+use ReflectionNamedType;
 
 class Repository extends EntityRepository
 {
@@ -140,7 +147,39 @@ class Repository extends EntityRepository
             $method = $this->snakeToPascalCase("set" . $key);
 
             if (method_exists($sm, $method)) {
-                $sm->$method($field);
+                $refMethod = new ReflectionMethod($sm, $method);
+                $type = $refMethod->getParameters()[0]->getType();
+
+                $expected = BaseEntity::class;
+
+                if (
+                    $type instanceof ReflectionNamedType &&
+                    !$type->isBuiltin() &&
+                    ($type->getName() == "DateTimeInterface" ||
+                        $type->getName() == "DateTime") &&
+                    is_string($field)
+                ) {
+                    $value = new DateTime($field);
+                    if ($value) {
+                        $sm->$method($value);
+                    }
+                } elseif (
+                    $type instanceof ReflectionNamedType &&
+                    !$type->isBuiltin() &&
+                    (is_subclass_of($type->getName(), $expected) ||
+                        $type->getName() === $expected)
+                ) {
+                    $value = EntityManager::getRepository(
+                        $type->getName()
+                    )->findOneBy(["id" => $field]);
+
+                    //dd("É ou herda de $expected" . $type->getName());
+                    if ($value) {
+                        $sm->$method($value);
+                    }
+                } else {
+                    $sm->$method($field);
+                }
             }
         }
         return $sm;
@@ -169,9 +208,49 @@ class Repository extends EntityRepository
             !$service->anyValidatorFail() &&
             ($params->params["flush"] ?? false)
         ) {
-            $this->getEntityManager()->flush();
-        }
+            try {
+                $this->getEntityManager()->flush();
+            } catch (UniqueConstraintViolationException $e) {
+                $service->getValidator()->after(function ($validator) use ($e) {
+                    $message = $e->getMessage();
+                    $error_message = "";
 
+                    // Normaliza a string, remove quebras de linha
+                    $message = str_replace(["\r", "\n"], " ", $message);
+
+                    preg_match(
+                        '/unique constraint "(.*?)"/i',
+                        $message,
+                        $constraintMatch
+                    );
+                    preg_match(
+                        "/Key \((.*?)\)=\((.*?)\)/",
+                        $message,
+                        $keyMatch
+                    );
+
+                    if ($constraintMatch && $keyMatch) {
+                        $constraint = $constraintMatch[1]; // Ex: unique_account_entry
+                        $fields = explode(", ", $keyMatch[1]); // Ex: ['entry_id', 'account_id']
+                        $values = explode(", ", $keyMatch[2]); // Ex: ['2', '6']
+
+                        // Monta mensagem amigável
+                        $error_message = "Violação da restrição '$constraint'. ";
+                        $pairs = [];
+                        foreach ($fields as $index => $field) {
+                            $pairs[] = "$field = " . ($values[$index] ?? "?");
+                        }
+                        $error_message .=
+                            "Valores duplicados: " .
+                            implode(", ", $pairs) .
+                            ".";
+                    } else {
+                        $error_message = "Erro de integridade único detectado, mas não foi possível extrair detalhes. Mensagem bruta: $message";
+                    }
+                    $validator->errors()->add("id", $error_message);
+                });
+            }
+        }
         return $service;
     }
 
@@ -180,8 +259,11 @@ class Repository extends EntityRepository
         return $this->getEntityManager();
     }
 
-    public function findOptions(mixed $id, array $fields): array
-    {
+    public function findOptions(
+        mixed $id,
+        array $fields,
+        string $orderBy = null
+    ): array {
         $select_fields = "a." . $id;
 
         foreach ($fields as $field) {
@@ -197,9 +279,13 @@ class Repository extends EntityRepository
                 $select_fields .
                 " FROM " .
                 $this->getEntityName() .
-                " a"
+                " a" .
+                " ORDER BY a." .
+                ($orderBy ? $orderBy : $fields[0])
         );
 
+        //$query->$options = [];
+        //
         $options = [];
 
         foreach ($query->getResult() as $row) {

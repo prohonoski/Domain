@@ -19,12 +19,22 @@ class FormORM
     {
         $this->setup();
     }
+    public function reOrder(array $order): void
+    {
+        $itensOrdenados = [];
+        foreach ($order as $key) {
+            if (isset($this->components[$key])) {
+                $itensOrdenados[$key] = $this->components[$key];
+            }
+        }
 
+        $this->components = $itensOrdenados;
+    }
     /**
      * Cria um formulario com os componentes já definidos e aplica as rules do model
      *
      *
-     * @return array<string, Field>
+     * @return self
      */
     public function autoForm(): self
     {
@@ -144,6 +154,12 @@ class FormORM
     public function getComponents(): array
     {
         return $this->components;
+    }
+
+    public function setComponents(array $components): self
+    {
+        $this->components = $components;
+        return $this;
     }
 
     public function getForm(): array

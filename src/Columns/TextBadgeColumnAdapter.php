@@ -10,7 +10,7 @@ class TextBadgeColumnAdapter implements BadgeColumnInterface
 {
     private TextColumn $column;
 
-    public function __construct(private $field) {}
+    //public function __construct(private $field) {}
 
     public function generate()
     {

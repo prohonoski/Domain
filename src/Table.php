@@ -19,9 +19,7 @@ class Table
         $this->setUp();
     }
 
-    protected function setUp(): void
-    {
-    }
+    protected function setUp(): void {}
 
     public function getComponents(): array
     {
@@ -31,5 +29,17 @@ class Table
     public function getColumns(): array
     {
         return $this->getComponents();
+    }
+
+    public function reOrder(array $order): void
+    {
+        $itensOrdenados = [];
+        foreach ($order as $key) {
+            if (isset($this->components[$key])) {
+                $itensOrdenados[$key] = $this->components[$key];
+            }
+        }
+
+        $this->components = $itensOrdenados;
     }
 }

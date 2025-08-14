@@ -12,6 +12,7 @@ class TextColumnAdapter implements TextColumnInterface
     {
         return TextColumn::make($field->getName())
             ->label($field->getLabel())
-            ->sortable($field->isSortable());
+            ->sortable($field->isSortable())
+            ->wrap($field->isWrap());
     }
 }

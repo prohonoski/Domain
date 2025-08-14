@@ -13,6 +13,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
+use LaravelDoctrine\ORM\Facades\EntityManager;
 use PhpParser\Node\Expr\Instanceof_;
 use Proho\Domain\Interfaces\FieldInterface;
 use Proho\Domain\Service;
@@ -30,6 +31,9 @@ class InputFilamentAdapter
     {
         $this->inputField = null;
 
+        // if ($field->getType() == FieldTypesEnum::Select) {
+        //     dd($field);
+        // }
         match ($field->getType()) {
             FieldTypesEnum::String => ($this->inputField = TextInput::make(
                 $field->getName()
@@ -81,28 +85,40 @@ class InputFilamentAdapter
                 FieldTypesEnum::Select,
             ])
         ) {
-            foreach ($field->getColumnAttr() as $key => $value) {
-                if (isset($value->getArguments()["enumType"])) {
-                    $this->inputField->options(
-                        $value->getArguments()["enumType"]::toArray()
-                    );
-                    //->colors(
-                    // [
-                    //     "primary" => static fn(
-                    //         $state
-                    //     ): bool => $state == 1 || $state == 4,
-                    // ];
-                    //);
-                    // ->colors([
-                    //     "primary" => static fn($state): bool => $state ==
-                    //         1 || $state == 4,
-                    //     "warning" => static fn($state): bool => $state == 2,
-                    //     "success" => static fn($state): bool => $state == 3,
-                    //     "secondary" => static fn($state): bool => in_array(
-                    //         $state,
-                    //         [5, 6, 7]
-                    //     ),
-                    // ]);
+            if ($field->getRelation()) {
+                $this->inputField
+                    ->options(
+                        EntityManager::getRepository(
+                            $field->getRelation()["class"]
+                        )->findOptions($field->getRelation()["ref"], [
+                            $field->getRelation()["label"],
+                        ])
+                    )
+                    ->searchable();
+            } else {
+                foreach ($field->getColumnAttr() as $key => $value) {
+                    if (isset($value->getArguments()["enumType"])) {
+                        $this->inputField->options(
+                            $value->getArguments()["enumType"]::toArray()
+                        );
+                        //->colors(
+                        // [
+                        //     "primary" => static fn(
+                        //         $state
+                        //     ): bool => $state == 1 || $state == 4,
+                        // ];
+                        //);
+                        // ->colors([
+                        //     "primary" => static fn($state): bool => $state ==
+                        //         1 || $state == 4,
+                        //     "warning" => static fn($state): bool => $state == 2,
+                        //     "success" => static fn($state): bool => $state == 3,
+                        //     "secondary" => static fn($state): bool => in_array(
+                        //         $state,
+                        //         [5, 6, 7]
+                        //     ),
+                        // ]);
+                    }
                 }
             }
         }

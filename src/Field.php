@@ -12,6 +12,7 @@ class Field implements FieldInterface
     private string|bool $label;
     private string $name;
     private FieldTypesEnum $type;
+    public ?bool $sortable = false;
 
     private array $defaultAttrs = [
         "pk" => false,
@@ -69,6 +70,11 @@ class Field implements FieldInterface
     public function getOptions(): string|array|null|Service
     {
         return $this->options ?? null;
+    }
+
+    public function isSortable(): bool
+    {
+        return $this->sortable;
     }
 
     public function getType(): FieldTypesEnum

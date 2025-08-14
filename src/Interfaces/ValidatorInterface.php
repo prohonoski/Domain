@@ -7,6 +7,7 @@ use Proho\Domain\Service;
 interface ValidatorInterface
 {
     public function setUp();
+    public function errors();
     public function validate(array $data, array $options): self;
     public function fails();
     public function messages();

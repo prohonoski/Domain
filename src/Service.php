@@ -157,16 +157,6 @@ class Service implements DomainServiceInterface
         return $this;
     }
 
-    public function anyValidatorFail(): bool
-    {
-        foreach ($this->getValidator() as $validator) {
-            if ($validator->fails()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public function getValidator(): array
     {
         return $this->arrayValidator;

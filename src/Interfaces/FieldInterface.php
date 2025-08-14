@@ -12,4 +12,10 @@ interface FieldInterface
     public function getLabel(): string|bool|null;
     public function getType(): FieldTypesEnum;
     public function getName(): ?string;
+    public function isSortable(): bool;
+    public function isSearchable(): bool;
+    public function isToggleable(): bool;
+    public function isToggleableHiddenByDefault(): bool;
+    public function isWrap(): bool;
+    public function getRelation(): string|array|null;
 }

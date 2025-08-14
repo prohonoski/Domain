@@ -16,7 +16,13 @@ class Component implements FieldInterface
         public ?string $name = null,
         public ?string $hint = null,
         public ?array $columnAttr = null,
-        public ?bool $sortable = false
+        public ?bool $sortable = false,
+        public ?bool $toggleable = false,
+        public ?bool $toggledHiddenByDefault = false,
+        public ?bool $wrap = false,
+        public ?bool $searchable = false,
+        public ?array $options = null,
+        public ?array $relation = null
     ) {
         $this->fill = $fill ?? true;
         $this->visible = $fill ?? true;
@@ -99,5 +105,30 @@ class Component implements FieldInterface
     public function getOptions(): string|array|null|Service
     {
         return $this->options ?? null;
+    }
+
+    public function getRelation(): string|array|null
+    {
+        return $this->relation ?? null;
+    }
+
+    public function isToggleable(): bool
+    {
+        return $this->toggleable;
+    }
+
+    public function isToggleableHiddenByDefault(): bool
+    {
+        return $this->toggledHiddenByDefault;
+    }
+
+    public function isWrap(): bool
+    {
+        return $this->wrap;
+    }
+
+    public function isSearchable(): bool
+    {
+        return $this->searchable;
     }
 }

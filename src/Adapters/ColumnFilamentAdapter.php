@@ -30,6 +30,10 @@ class ColumnFilamentAdapter
     {
         $this->columnField = null;
 
+        // if ($field->getType() == FieldTypesEnum::Radio) {
+        //     dd($field);
+        // }
+
         match ($field->getType()) {
             FieldTypesEnum::String
                 => ($this->columnField = TextColumnAdapter::make($field)),
@@ -62,6 +66,12 @@ class ColumnFilamentAdapter
                 $field->getName(),
             ]),
         };
+
+        $this->columnField
+            ->toggleable($field->isToggleable())
+            ->searchable($field->isSearchable())
+            ->sortable($field->isSortable())
+            ->toggledHiddenByDefault($field->isToggleableHiddenByDefault());
     }
 
     public static function make(FieldInterface $field): self

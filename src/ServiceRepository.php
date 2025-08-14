@@ -94,14 +94,15 @@ class ServiceRepository implements ServiceRepositoryInterface
             $service = $this;
         }
 
-        if ($service->getValidator()->fails()) {
-            return true;
-        } else {
-            $validators = $this->getAllValidator();
-            foreach ($validators as $validator) {
-                if ($validator->fails()) {
-                    return true;
-                }
+        $servValidators = $this->getAllValidator();
+
+        foreach ($servValidators as $validatorAdapter) {
+            //dd($validatorAdapter);
+
+            // foreach ($validatorAdapter->getValidator() as $validator) {
+            //     dd($validator);
+            if ($validatorAdapter->fails()) {
+                return true;
             }
         }
 
