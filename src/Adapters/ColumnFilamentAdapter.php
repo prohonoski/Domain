@@ -8,6 +8,7 @@ use Filament\Tables\Columns\TextColumn;
 use OpenSpout\Common\Entity\Comment\TextRun;
 use Proho\Domain\Columns\BadgeColumn as ColumnsBadgeColumn;
 use Proho\Domain\Columns\BadgeColumnAdapter;
+use Proho\Domain\Columns\BooleanColumnAdapter;
 use Proho\Domain\Columns\TextColumnAdapter;
 use Proho\Domain\Columns\TextDateColumnAdapter;
 use Proho\Domain\Columns\TextDateTimeColumnAdapter;
@@ -55,6 +56,8 @@ class ColumnFilamentAdapter
             )),
             FieldTypesEnum::Date
                 => ($this->columnField = TextDateColumnAdapter::make($field)),
+            FieldTypesEnum::Boolean
+                => ($this->columnField = BooleanColumnAdapter::make($field)),
             FieldTypesEnum::Select
                 => ($this->columnField = TextColumnAdapter::make($field)),
             FieldTypesEnum::Radio => ($this->columnField = app(

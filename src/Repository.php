@@ -182,6 +182,48 @@ class Repository extends EntityRepository
                 }
             }
         }
+
+        //depois atribui os valores relacionados
+
+        $reflection = new ReflectionClass($sm);
+
+        foreach ($reflection->getProperties() as $property) {
+            $name = $property->getName();
+
+            // Verifica se é uma relação ManyToOne
+            $relationAttr = $property->getAttributes(ManyToOne::class);
+
+            if (!empty($relationAttr)) {
+                $relationClass = $relationAttr[0]->getArguments()[
+                    "targetEntity"
+                ];
+                $key = $name . "_id"; // ex: escolaridade_id
+                $method = $this->snakeToPascalCase("set_" . $name);
+                // $method = "setEscolaridade";
+
+                if (array_key_exists($key, $data) && $data[$key] !== null) {
+                    //$related = new $relationClass();
+
+                    $related = EntityManager::find($relationClass, $data[$key]);
+
+                    //dd($sm, $method, method_exists($sm, $method));
+
+                    // Preenche o ID da entidade relacionada
+                    if (method_exists($sm, $method)) {
+                        $sm->$method($related);
+
+                        /*$idProp = new ReflectionProperty($related, "id");
+                        $idProp->setAccessible(true);
+                        $idProp->setValue($related, $data[$key]);*/
+                    }
+
+                    //                    $this->$name = $related;
+                }
+
+                continue;
+            }
+        }
+
         return $sm;
     }
 
@@ -275,9 +317,7 @@ class Repository extends EntityRepository
         }
 
         $query = $this->getEm()->createQuery(
-            "SELECT " .
-                $select_fields .
-                " FROM " .
+            "SELECT a FROM " .
                 $this->getEntityName() .
                 " a" .
                 " ORDER BY a." .
@@ -286,20 +326,7 @@ class Repository extends EntityRepository
 
         //$query->$options = [];
         //
-        $options = [];
 
-        foreach ($query->getResult() as $row) {
-            $value = "";
-            foreach ($fields as $field) {
-                if ($value == "") {
-                    $value .= $row[$field];
-                } else {
-                    $value .= ", " . $row[$field];
-                }
-            }
-            $options[$row[$id]] = $value;
-        }
-
-        return $options;
+        return $query->getArrayResult();
     }
 }

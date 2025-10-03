@@ -36,35 +36,35 @@ class InputFilamentAdapter
         // }
         match ($field->getType()) {
             FieldTypesEnum::String => ($this->inputField = TextInput::make(
-                $field->getName()
+                $field->getName(),
             )),
             FieldTypesEnum::StringLong => ($this->inputField = TextInput::make(
-                $field->getName()
+                $field->getName(),
             )->maxLength(100)),
             FieldTypesEnum::TextArea => ($this->inputField = Textarea::make(
-                $field->getName()
+                $field->getName(),
             )),
             FieldTypesEnum::Decimal => ($this->inputField = TextInput::make(
-                $field->getName()
+                $field->getName(),
             )->numeric()),
             FieldTypesEnum::Date => ($this->inputField = DatePicker::make(
-                $field->getName()
+                $field->getName(),
             )->displayFormat("d/m/Y")),
             FieldTypesEnum::DateTime
                 => ($this->inputField = DateTimePicker::make(
-                $field->getName()
+                $field->getName(),
             )->displayFormat("d/m/Y H:i")),
             FieldTypesEnum::Radio => ($this->inputField = Radio::make(
-                $field->getName()
+                $field->getName(),
             )->options($field->getOptions())),
             FieldTypesEnum::Select => ($this->inputField = Select::make(
-                $field->getName()
+                $field->getName(),
             )),
             FieldTypesEnum::Integer => ($this->inputField = TextInput::make(
-                $field->getName()
+                $field->getName(),
             )->integer()),
             FieldTypesEnum::Boolean => ($this->inputField = Toggle::make(
-                $field->getName()
+                $field->getName(),
             )),
         };
 
@@ -75,7 +75,7 @@ class InputFilamentAdapter
                     is_numeric($value->getArguments()["length"])
                 ) {
                     $this->inputField->maxLength(
-                        $value->getArguments()["length"]
+                        $value->getArguments()["length"],
                     );
                 }
             }
@@ -86,20 +86,42 @@ class InputFilamentAdapter
             ])
         ) {
             if ($field->getRelation()) {
-                $this->inputField
-                    ->options(
+                $relationship =
+                    $field->getRelation()["relationship"] ?? "findOptions";
+
+                $label = $field->getRelation()["label"] ?? null;
+                $labelArray = is_array($label)
+                    ? $label
+                    : ($label !== null
+                        ? [$label]
+                        : []);
+
+                if ($relationship != "findOptions") {
+                    $dadosFiltrados = $this->extrairComCamposConcatenados(
                         EntityManager::getRepository(
-                            $field->getRelation()["class"]
-                        )->findOptions($field->getRelation()["ref"], [
-                            $field->getRelation()["label"],
-                        ])
-                    )
-                    ->searchable();
+                            $field->getRelation()["class"],
+                        )->$relationship(),
+                        $labelArray,
+                    );
+
+                    $this->inputField->options($dadosFiltrados)->searchable();
+                } else {
+                    $dadosFiltrados = $this->extrairComCamposConcatenados(
+                        EntityManager::getRepository(
+                            $field->getRelation()["class"],
+                        )->$relationship($field->getRelation()["ref"], [
+                            $labelArray[0],
+                        ]),
+                        $labelArray,
+                    );
+
+                    $this->inputField->options($dadosFiltrados)->searchable();
+                }
             } else {
                 foreach ($field->getColumnAttr() as $key => $value) {
                     if (isset($value->getArguments()["enumType"])) {
                         $this->inputField->options(
-                            $value->getArguments()["enumType"]::toArray()
+                            $value->getArguments()["enumType"]::toArray(),
                         );
                         //->colors(
                         // [
@@ -126,7 +148,7 @@ class InputFilamentAdapter
             $this->inputField->label(
                 $field->getLabel() === ""
                     ? $field->getName()
-                    : $field->getLabel()
+                    : $field->getLabel(),
             );
 
             if ($field->getHint()) {
@@ -135,7 +157,7 @@ class InputFilamentAdapter
                         Action::make("time_info") // Prevent click
                             ->icon("heroicon-o-question-mark-circle")
                             ->tooltip($field->getHint())
-                            ->label("")
+                            ->label(""),
                     );
                 } else {
                     $this->inputField->hint($field->getHint());
@@ -151,7 +173,7 @@ class InputFilamentAdapter
                     $this->inputField->datalist($field->getDatalist());
                 } elseif (class_exists($field->getDatalist())) {
                     $this->inputField->datalist(
-                        $field->getDatalist()::service()->query()
+                        $field->getDatalist()::service()->query(),
                     );
                 }
             }
@@ -170,14 +192,14 @@ class InputFilamentAdapter
                     $this->inputField->options($field->getOptions()->query());
                 } elseif (class_exists($field->getOptions())) {
                     $this->inputField->options(
-                        $field->getOptions()::service()->query()
+                        $field->getOptions()::service()->query(),
                     );
                 } else {
                     throw new Exception(
                         "Erro carregando options: " .
                             $field->getOptions() .
                             " não foi possível resolver. Para o campo: " .
-                            $field->getName()
+                            $field->getName(),
                     );
                 }
             }
@@ -190,5 +212,36 @@ class InputFilamentAdapter
 
         $static = app(static::class, ["field" => $field]);
         return $static;
+    }
+
+    /**
+     * @param array $dados             // Array de entrada
+     * @param array $camposConcat      // Lista de campos que serão concatenados
+     * @param string $separador        // Separador entre os campos (opcional)
+     * @param string $chaveTipo        // Nome do campo final (default: 'tipo')
+     * @return array                   // Array reduzido com id e campo concatenado
+     */
+    function extrairComCamposConcatenados(
+        array $dados,
+        array $camposConcat,
+        string $separador = " - ",
+    ): array {
+        $resultado = [];
+
+        foreach ($dados as $item) {
+            $valores = array_map(
+                fn($campo) => $item[$campo] ?? "",
+                $camposConcat,
+            );
+
+            $resultado[$item["id"]] = trim(
+                implode(
+                    $separador,
+                    array_filter($valores, fn($v) => $v !== ""),
+                ),
+            );
+        }
+
+        return $resultado;
     }
 }

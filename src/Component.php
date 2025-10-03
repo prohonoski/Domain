@@ -22,7 +22,7 @@ class Component implements FieldInterface
         public ?bool $wrap = false,
         public ?bool $searchable = false,
         public ?array $options = null,
-        public ?array $relation = null
+        public ?array $relationship = null,
     ) {
         $this->fill = $fill ?? true;
         $this->visible = $fill ?? true;
@@ -109,7 +109,7 @@ class Component implements FieldInterface
 
     public function getRelation(): string|array|null
     {
-        return $this->relation ?? null;
+        return $this->relationship ?? null;
     }
 
     public function isToggleable(): bool
