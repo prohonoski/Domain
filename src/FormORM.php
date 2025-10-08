@@ -19,7 +19,7 @@ class FormORM
     {
         $this->setup();
     }
-    public function reOrder(array $order): void
+    public function reOrder(array $order): self
     {
         $itensOrdenados = [];
         foreach ($order as $key) {
@@ -29,6 +29,7 @@ class FormORM
         }
 
         $this->components = $itensOrdenados;
+        return $this;
     }
     /**
      * Cria um formulario com os componentes já definidos e aplica as rules do model

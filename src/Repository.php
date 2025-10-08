@@ -2,7 +2,6 @@
 
 namespace Proho\Domain;
 
-use App\ORM\Entities\BaseEntity;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
@@ -328,5 +327,21 @@ class Repository extends EntityRepository
         //
 
         return $query->getArrayResult();
+    }
+    /**
+     * Verifica de forma performática se uma entidade existe pelo ID.
+     *
+     * @param int $id
+     * @return bool
+     */
+    public function exists(int $id): bool
+    {
+        // O retorno é convertido para booleano: true se a contagem > 0, senão false.
+        return (bool) $this->createQueryBuilder("e")
+            ->select("COUNT(e.id)")
+            ->where("e.id = :id")
+            ->setParameter("id", $id)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }
