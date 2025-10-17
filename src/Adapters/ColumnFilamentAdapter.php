@@ -13,6 +13,7 @@ use Proho\Domain\Columns\TextColumnAdapter;
 use Proho\Domain\Columns\TextDateColumnAdapter;
 use Proho\Domain\Columns\TextDateTimeColumnAdapter;
 use Proho\Domain\Columns\TextDecimalColumnAdapter;
+use Proho\Domain\Columns\TextHourQtyColumnAdapter;
 use Proho\Domain\Columns\TextNumericColumnAdapter;
 use Proho\Domain\Field;
 use Proho\Domain\Interfaces\BadgeColumnInterface;
@@ -63,6 +64,10 @@ class ColumnFilamentAdapter
             FieldTypesEnum::Radio => ($this->columnField = app(
                 BadgeColumnInterface::class,
             )->make($field)),
+            FieldTypesEnum::HourQty
+                => ($this->columnField = TextHourQtyColumnAdapter::make(
+                $field,
+            )),
             default => dd([
                 "Campo sem correspondencia",
                 $field->getType(),

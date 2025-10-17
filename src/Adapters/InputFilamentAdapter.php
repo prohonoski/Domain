@@ -12,9 +12,11 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Select;
 use LaravelDoctrine\ORM\Facades\EntityManager;
 use PhpParser\Node\Expr\Instanceof_;
+use Proho\Domain\Components\HourMinuteInput;
 use Proho\Domain\Interfaces\FieldInterface;
 use Proho\Domain\Service;
 
@@ -50,6 +52,10 @@ class InputFilamentAdapter
             FieldTypesEnum::Date => ($this->inputField = DatePicker::make(
                 $field->getName(),
             )->displayFormat("d/m/Y")),
+            FieldTypesEnum::HourQty
+                => ($this->inputField = HourMinuteInput::make(
+                $field->getName(),
+            )),
             FieldTypesEnum::DateTime
                 => ($this->inputField = DateTimePicker::make(
                 $field->getName(),

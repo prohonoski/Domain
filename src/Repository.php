@@ -11,6 +11,7 @@ use Proho\Domain\Interfaces\ServiceRepositoryInterface;
 use Proho\Domain\Interfaces\ValidatorInterface;
 use ReflectionClass;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\ORM\Mapping\ManyToOne;
 use Illuminate\Validation\ValidationException;
 use LaravelDoctrine\ORM\Facades\EntityManager;
 use ReflectionMethod;
@@ -153,6 +154,17 @@ class Repository extends EntityRepository
 
                 if (
                     $type instanceof ReflectionNamedType &&
+                    enum_exists($type->getName())
+                ) {
+                    // Conversão para Enum
+                    $enumClass = $type->getName();
+                    $enumValue = $enumClass::tryFrom($field);
+
+                    if ($enumValue !== null) {
+                        $sm->$method($enumValue);
+                    }
+                } elseif (
+                    $type instanceof ReflectionNamedType &&
                     !$type->isBuiltin() &&
                     ($type->getName() == "DateTimeInterface" ||
                         $type->getName() == "DateTime") &&
@@ -172,10 +184,15 @@ class Repository extends EntityRepository
                         $type->getName(),
                     )->findOneBy(["id" => $field]);
 
-                    //dd("É ou herda de $expected" . $type->getName());
                     if ($value) {
                         $sm->$method($value);
                     }
+                } elseif (
+                    $type instanceof ReflectionNamedType &&
+                    !$type->isBuiltin() &&
+                    $key == "tipo"
+                ) {
+                    dd([$key, $type]);
                 } else {
                     $sm->$method($field);
                 }

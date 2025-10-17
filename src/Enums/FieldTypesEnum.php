@@ -18,4 +18,5 @@ enum FieldTypesEnum: string
     case Boolean = "boolean";
     case Radio = "radio";
     case Select = "select";
+    case HourQty = "hourqty";
 }
