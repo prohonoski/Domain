@@ -126,9 +126,12 @@ class InputFilamentAdapter
             } else {
                 foreach ($field->getColumnAttr() as $key => $value) {
                     if (isset($value->getArguments()["enumType"])) {
-                        $this->inputField->options(
-                            $value->getArguments()["enumType"]::toArray(),
-                        );
+                        $enumClass = $value->getArguments()["enumType"];
+                        $options = method_exists($enumClass, "toSelectArray")
+                            ? $enumClass::toSelectArray()
+                            : $enumClass::toArray();
+
+                        $this->inputField->options($options);
                         //->colors(
                         // [
                         //     "primary" => static fn(
@@ -214,8 +217,6 @@ class InputFilamentAdapter
 
     public static function make(Field $field): self
     {
-        dd('$field');
-
         $static = app(static::class, ["field" => $field]);
         return $static;
     }

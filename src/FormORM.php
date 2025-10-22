@@ -175,8 +175,6 @@ class FormORM
 
     public function applyRules(Rules ...$rules): self
     {
-        //dd($rules);
-
         foreach ($rules as $key => $rule) {
             foreach ($rule->getRules() as $keyR => $valueR) {
                 if (isset($this->components[$keyR])) {

@@ -59,7 +59,7 @@ class RulesFilamentAdapter
                 "regex" => ($field = Regex::make($field, $value)),
                 "after_or_equal" => ($field = AfterOrEqual::make(
                     $field,
-                    $value
+                    $value,
                 )),
                 default => ($field = RuleDefault::make($field, $rule_str)),
             };
