@@ -12,10 +12,10 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Select;
 use LaravelDoctrine\ORM\Facades\EntityManager;
-use PhpParser\Node\Expr\Instanceof_;
+use Leandrocfe\FilamentPtbrFormFields\PtbrCpfCnpj;
+use Leandrocfe\FilamentPtbrFormFields\PtbrPhone;
 use Proho\Domain\Components\HourMinuteInput;
 use Proho\Domain\Interfaces\FieldInterface;
 use Proho\Domain\Service;
@@ -72,6 +72,14 @@ class InputFilamentAdapter
             FieldTypesEnum::Boolean => ($this->inputField = Toggle::make(
                 $field->getName(),
             )),
+            FieldTypesEnum::Cpf => ($this->inputField = PtbrCpfCnpj::make(
+                $field->getName(),
+            )
+                ->cpf()
+                ->rule("cpf")),
+            FieldTypesEnum::Fone => ($this->inputField = PtbrPhone::make(
+                $field->getName(),
+            )->minLength(10)),
         };
 
         if (in_array($field->getType(), [FieldTypesEnum::String])) {
@@ -95,6 +103,9 @@ class InputFilamentAdapter
                 $relationship =
                     $field->getRelation()["relationship"] ?? "findOptions";
 
+                $lazy = $field->getRelation()["lazyLoad"] ?? false;
+                $limit = $field->getRelation()["limit"] ?? 49;
+
                 $label = $field->getRelation()["label"] ?? null;
                 $labelArray = is_array($label)
                     ? $label
@@ -102,7 +113,59 @@ class InputFilamentAdapter
                         ? [$label]
                         : []);
 
-                if ($relationship != "findOptions") {
+                if ($lazy) {
+                    $this->inputField
+                        ->searchable()
+                        ->noSearchResultsMessage("Nenhuma registro encontrado")
+                        ->searchPrompt("Digite 3 caracteres para buscar...")
+                        ->getSearchResultsUsing(function (string $search) use (
+                            $field,
+                            $labelArray,
+                            $limit,
+                        ) {
+                            if (strlen($search) < 3) {
+                                return [];
+                            }
+
+                            $dadosFiltrados = EntityManager::getRepository(
+                                $field->getRelation()["class"],
+                            )->searchOptionsQb(
+                                id: "id",
+                                fields: $labelArray,
+                                orderBy: null,
+                                search: $search,
+                                limit: $limit,
+                            );
+
+                            // dd($dadosFiltrados->getQuery()->getScalarResult());
+
+                            $dadosFiltrados = $this->extrairComCamposConcatenados(
+                                $dadosFiltrados->getQuery()->getScalarResult(),
+                                $labelArray,
+                                " - ",
+                            );
+
+                            $hasMore = count($dadosFiltrados) >= $limit;
+
+                            // Adiciona mensagem no final
+                            if ($hasMore) {
+                                $dadosFiltrados[
+                                    ""
+                                ] = "--- Mais de {$limit} resultados. Refine sua busca para ver mais ---";
+                            }
+
+                            return $dadosFiltrados;
+                        })
+                        ->getOptionLabelUsing(
+                            fn($value): ?string => EntityManager::getRepository(
+                                $field->getRelation()["class"],
+                            )
+                                ->find(["id" => $value])
+                                ->getNome(),
+                        );
+                } else {
+                    $dadosFiltrados = [];
+
                     $dadosFiltrados = $this->extrairComCamposConcatenados(
                         EntityManager::getRepository(
                             $field->getRelation()["class"],
@@ -111,18 +174,38 @@ class InputFilamentAdapter
                     );
 
                     $this->inputField->options($dadosFiltrados)->searchable();
-                } else {
-                    $dadosFiltrados = $this->extrairComCamposConcatenados(
-                        EntityManager::getRepository(
-                            $field->getRelation()["class"],
-                        )->$relationship($field->getRelation()["ref"], [
-                            $labelArray[0],
-                        ]),
-                        $labelArray,
-                    );
-
-                    $this->inputField->options($dadosFiltrados)->searchable();
                 }
+
+                // if ($field->getRelation()[""]) {
+                //     if ($relationship != "findOptions") {
+                //         $dadosFiltrados = [];
+
+                //         $dadosFiltrados = $this->extrairComCamposConcatenados(
+                //             EntityManager::getRepository(
+                //                 $field->getRelation()["class"],
+                //             )->$relationship(),
+                //             $labelArray,
+                //         );
+
+                //         $this->inputField
+                //             ->options($dadosFiltrados)
+                //             ->searchable();
+                //     } else {
+                //         $dadosFiltrados = [];
+
+                //         $dadosFiltrados = $this->extrairComCamposConcatenados(
+                //             EntityManager::getRepository(
+                //                 $field->getRelation()["class"],
+                //             )->$relationship($field->getRelation()["ref"], [
+                //                 $labelArray[0],
+                //             ]),
+                //             $labelArray,
+                //         );
+
+                //         $this->inputField
+                //             ->options($dadosFiltrados)
+                //             ->searchable();
+                //     }
             } else {
                 foreach ($field->getColumnAttr() as $key => $value) {
                     if (isset($value->getArguments()["enumType"])) {
@@ -154,6 +237,8 @@ class InputFilamentAdapter
             }
         }
         if ($this->inputField) {
+            $this->inputField->disabled($field->isDisabled());
+
             $this->inputField->label(
                 $field->getLabel() === ""
                     ? $field->getName()

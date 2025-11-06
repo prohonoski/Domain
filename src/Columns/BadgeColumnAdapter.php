@@ -37,11 +37,17 @@ class BadgeColumnAdapter implements BadgeColumnInterface
                         return $enumInstance->getLabel();
                     }
 
+                    if (
+                        $enumInstance &&
+                        method_exists($enumInstance, "label")
+                    ) {
+                        return $enumInstance->label();
+                    }
+
                     // Otherwise, fall back to the original logic (show the enum case name).
                     return $enumClass::toArray()[$state] ??
                         ($default ?? $state);
                 });
-                
             }
         }
         return $column;

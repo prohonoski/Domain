@@ -12,10 +12,10 @@ use Proho\Domain\Interfaces\ValidatorInterface;
 use ReflectionClass;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\Mapping\ManyToOne;
-use Illuminate\Validation\ValidationException;
 use LaravelDoctrine\ORM\Facades\EntityManager;
 use ReflectionMethod;
 use ReflectionNamedType;
+use Doctrine\ORM\QueryBuilder;
 
 class Repository extends EntityRepository
 {
@@ -318,33 +318,46 @@ class Repository extends EntityRepository
     }
 
     public function findOptions(
-        mixed $id,
-        array $fields,
-        string $orderBy = null,
+        mixed $id = "id",
+        ?array $fields = ["id"],
+        ?string $orderBy = null,
     ): array {
-        $select_fields = "a." . $id;
+        $query = $this->findOptionsQb($id, $fields, $orderBy)->getQuery();
+        return $query->getArrayResult();
+    }
 
-        foreach ($fields as $field) {
-            if ($select_fields == "") {
-                $select_fields .= "a." . $field;
-            } else {
-                $select_fields .= ", a." . $field;
+    public function findOptionsQb(
+        mixed $id = "id",
+        ?array $fields = ["id"],
+        ?string $orderBy = null,
+    ): QueryBuilder {
+        // Select fields
+        //
+        if ($fields == ["id"]) {
+            $selectFields = ["a"];
+        } else {
+            $selectFields = ["a.{$id}"];
+            foreach ($fields as $field) {
+                $selectFields[] = "a.{$field}";
             }
         }
 
-        $query = $this->getEm()->createQuery(
-            "SELECT a FROM " .
-                $this->getEntityName() .
-                " a" .
-                " ORDER BY a." .
-                ($orderBy ? $orderBy : $fields[0]),
-        );
+        $orderField = $orderBy ?: $fields[0];
 
-        //$query->$options = [];
-        //
+        $qb = $this->createQueryBuilder("a");
+        $qb->select($selectFields);
+        $qb->orderBy("a.{$orderField}", "ASC");
 
-        return $query->getArrayResult();
+        // $query = $this->getEm()->createQuery(
+        //     "SELECT a FROM " .
+        //         $this->getEntityName() .
+        //         " a" .
+        //         " ORDER BY a." .
+        //        ,
+        // );
+        return $qb;
     }
+
     /**
      * Verifica de forma performática se uma entidade existe pelo ID.
      *
@@ -360,5 +373,128 @@ class Repository extends EntityRepository
             ->setParameter("id", $id)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+    public function searchOptions(
+        mixed $id,
+        array $fields,
+        ?string $orderBy = null,
+        ?string $search = null,
+        int $limit = 50,
+    ): array {
+        $data = $this->searchOptionsQb($id, $fields, $orderBy, $search, $limit);
+
+        return $this->extractFields(
+            $data->getQuery()->getScalarResult(),
+            $fields,
+            " - ",
+        );
+    }
+
+    public function searchOptionsQb(
+        mixed $id,
+        array $fields,
+        ?string $orderBy = null,
+        ?string $search = null,
+        int $limit = 50,
+    ): QueryBuilder {
+        $qb = $this->createQueryBuilder("a");
+
+        // Select fields
+        $selectFields = ["a.{$id}"];
+        foreach ($fields as $field) {
+            $selectFields[] = "a.{$field}";
+        }
+        $qb->select($selectFields);
+
+        // Aplicar busca se fornecida
+        if ($search !== null && trim($search) !== "") {
+            $orX = $qb->expr()->orX();
+
+            foreach ($fields as $index => $field) {
+                $paramName = "search_{$index}";
+                $orX->add(
+                    $qb->expr()->like("LOWER(a.{$field})", ":{$paramName}"),
+                );
+                $qb->setParameter($paramName, "%" . strtolower($search) . "%");
+            }
+
+            $qb->andWhere($orX);
+        }
+
+        // Order by
+        $orderField = $orderBy ?? $fields[0];
+        $qb->orderBy("a.{$orderField}", "ASC");
+
+        // Limit
+        if ($limit > 0) {
+            $qb->setMaxResults($limit);
+        }
+
+        return $qb;
+    }
+    /**
+     * @param array $dados             // Array de entrada
+     * @param array $camposConcat      // Lista de campos que serão concatenados
+     * @param string $separador        // Separador entre os campos (opcional)
+     * @param string $chaveTipo        // Nome do campo final (default: 'tipo')
+     * @return array                   // Array reduzido com id e campo concatenado
+     */
+    function extractFields(
+        array $dados,
+        array $camposConcat,
+        string $separador = " - ",
+    ): array {
+        $resultado = [];
+
+        foreach ($dados as $item) {
+            $valores = array_map(
+                fn($campo) => $item[$campo] ?? "",
+                $camposConcat,
+            );
+
+            $resultado[$item["id"]] = trim(
+                implode(
+                    $separador,
+                    array_filter($valores, fn($v) => $v !== ""),
+                ),
+            );
+        }
+
+        return $resultado;
+    }
+    /**
+     * Verifica se existe duplicidade baseado nos campos fornecidos
+     *
+     * @param array $fields ['nome' => 'João', 'email' => 'joao@example.com']
+     * @param int|null $excludeId ID para excluir da verificação (útil em updates)
+     * @return bool
+     */
+    public function isDuplicated(array $fields, ?int $excludeId = null): bool
+    {
+        if (empty($fields)) {
+            return false;
+        }
+
+        $qb = $this->createQueryBuilder("e");
+
+        // Adiciona condições WHERE para cada campo
+        foreach ($fields as $field => $value) {
+            $paramName = str_replace(".", "_", $field); // Remove pontos se houver
+
+            $qb->andWhere("e.{$field} = :{$paramName}")->setParameter(
+                $paramName,
+                $value,
+            );
+        }
+
+        // Exclui o próprio registro se for update
+        if ($excludeId !== null) {
+            $qb->andWhere("e.id != :excludeId")->setParameter(
+                "excludeId",
+                $excludeId,
+            );
+        }
+        $qb->setMaxResults(1);
+        return $qb->getQuery()->getOneOrNullResult() !== null;
     }
 }

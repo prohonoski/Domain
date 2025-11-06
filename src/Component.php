@@ -9,20 +9,22 @@ use Proho\Domain\Interfaces\FieldInterface;
 class Component implements FieldInterface
 {
     public function __construct(
-        public FieldTypesEnum $type,
-        public ?bool $fill = null,
-        public ?bool $visible = null,
-        public ?string $label = null,
-        public ?string $name = null,
-        public ?string $hint = null,
-        public ?array $columnAttr = null,
-        public ?bool $sortable = false,
-        public ?bool $toggleable = false,
-        public ?bool $toggledHiddenByDefault = false,
-        public ?bool $wrap = false,
-        public ?bool $searchable = false,
-        public ?array $options = null,
-        public ?array $relationship = null,
+        private FieldTypesEnum $type,
+        private ?bool $fill = null,
+        private ?bool $visible = null,
+        private ?string $label = null,
+        private ?string $name = null,
+        private ?string $hint = null,
+        private ?string $hintType = null,
+        private ?array $columnAttr = null,
+        private ?bool $sortable = false,
+        private ?bool $disabled = false,
+        private ?bool $toggleable = false,
+        private ?bool $toggledHiddenByDefault = false,
+        private ?bool $wrap = false,
+        private ?bool $searchable = false,
+        private ?array $options = null,
+        private ?array $relationship = null,
     ) {
         $this->fill = $fill ?? true;
         $this->visible = $fill ?? true;
@@ -47,7 +49,7 @@ class Component implements FieldInterface
 
     public function getColumnAttr(): array|null
     {
-        return $this->columnAttr;
+        return $this->columnAttr ?? [];
     }
 
     public function setName(string $name): self
@@ -69,6 +71,17 @@ class Component implements FieldInterface
     public function isSortable(): bool
     {
         return $this->sortable;
+    }
+
+    public function disabled(bool $state): self
+    {
+        $this->disabled = $state;
+        return $this;
+    }
+
+    public function isDisabled(): bool
+    {
+        return $this->disabled;
     }
 
     public function getLabel(): string|bool|null
@@ -94,7 +107,7 @@ class Component implements FieldInterface
 
     public function getHintType(): string
     {
-        return $this->hint_type ?? "float";
+        return $this->hintType ?? "float";
     }
 
     public function getDatalist(): string|array|null

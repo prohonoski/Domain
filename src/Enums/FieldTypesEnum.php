@@ -19,4 +19,6 @@ enum FieldTypesEnum: string
     case Radio = "radio";
     case Select = "select";
     case HourQty = "hourqty";
+    case Cpf = "cpf";
+    case Fone = "fone";
 }

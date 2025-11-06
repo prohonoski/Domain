@@ -2,6 +2,7 @@
 
 namespace Proho\Domain;
 
+use Filament\Tables\Columns\Column;
 use Proho\Domain\Adapters\RulesFilamentAdapter;
 
 use Proho\Domain\Interfaces\InputInterface;
@@ -13,6 +14,8 @@ use LaravelDoctrine\ORM\Facades\EntityManager;
 class FormORM
 {
     protected $components = [];
+    /** @var array<string, Component> */
+    protected array $configuredComponents = [];
     protected $inputInterface;
 
     public function __construct(public string $entity)
@@ -50,13 +53,27 @@ class FormORM
         return $this;
     }
 
+    public function getProprerties(): array
+    {
+        foreach ($this->getFields() as $propriedade) {
+            $ORMColumnAttributes = $propriedade->getAttributes(
+                \Doctrine\ORM\Mapping\Column::class,
+            );
+            $return[] = [
+                "columnAttr" => $ORMColumnAttributes,
+                "attr" => $propriedade->getAttributes(Component::class),
+            ];
+        }
+        return $return;
+    }
+
     /**
      * Cria uma tabela com os componentes já definidos no model
      *
      *
      * @return self
      */
-    public function autoTable(): self
+    public function oldautoTable(): self
     {
         foreach ($this->getFields() as $propriedade) {
             $ORMColumnAttributes = $propriedade->getAttributes(
@@ -96,7 +113,91 @@ class FormORM
         return $this;
     }
 
-    private function getFields()
+    public function old2autoTable(): self
+    {
+        foreach ($this->getFields() as $propriedade) {
+            $confComponent = $this->buildTableComponent($propriedade);
+            if ($confComponent) {
+                $this->components[
+                    $confComponent->getName()
+                ] = $this->createComponent($confComponent);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Cria e configura o componente com os dados da propriedade
+     */
+    public function createComponent(Component $component): Column
+    {
+        return ColumnFilamentAdapter::make($component)->getColumnField();
+    }
+
+    /**
+     * Cria e configura o componente com os dados da propriedade
+     */
+    private function configureComponent(
+        \ReflectionAttribute $attribute,
+        \ReflectionProperty $propriedade,
+    ): Component {
+        $component = $attribute->newInstance();
+
+        $ormAttributes = $propriedade->getAttributes(
+            \Doctrine\ORM\Mapping\Column::class,
+        );
+
+        // dd(
+        //     $attribute,
+        //     $ormAttributes,
+        //     $propriedade
+        //         ->getAttributes(\Proho\Domain\Component::class)[0]
+        //         ->getArguments(),
+        // );
+
+        $component->setColumnAttr($ormAttributes);
+        $component->setName($component->getName() ?? $propriedade->getName());
+        $component->setLabel($component->getLabel() ?? $propriedade->getName());
+
+        return $component;
+    }
+
+    /**
+     * Extrai o atributo fillable da propriedade
+     */
+    private function extractFillableAttribute(
+        \ReflectionProperty $propriedade,
+    ): ?\ReflectionAttribute {
+        $componentAttributes = $propriedade->getAttributes(Component::class);
+
+        foreach ($componentAttributes as $attribute) {
+            $args = $attribute->getArguments();
+
+            if (!isset($args["fill"]) || $args["fill"]) {
+                return $attribute;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Constrói um componente de tabela a partir de uma propriedade
+     */
+    public function buildTableComponent(
+        \ReflectionProperty $propriedade,
+    ): ?Component {
+        $fieldAttribute = $this->extractFillableAttribute($propriedade);
+
+        if ($fieldAttribute === null) {
+            return null;
+        }
+
+        return $this->configureComponent($fieldAttribute, $propriedade);
+    }
+
+    public function getFields()
     {
         $refl = new ReflectionClass($this->entity);
 
@@ -128,7 +229,10 @@ class FormORM
             $atributosDaPropriedade = $propriedade->getAttributes(
                 Component::class,
             );
+
             // //Percorre os atributos definidos na propriedade
+            //
+
             foreach ($atributosDaPropriedade as $atributo) {
                 $field = $atributo->newInstance();
                 $field->setColumnAttr($ORMColumnAttributes);
@@ -186,6 +290,70 @@ class FormORM
                 }
             }
         }
+        return $this;
+    }
+
+    /**
+     * Novo método: configura todos os componentes da entidade de uma só vez
+     * e armazena em $this->configuredComponents
+     */
+    public function configureAllComponents(): self
+    {
+        $this->configuredComponents = [];
+
+        foreach ($this->getFields() as $propriedade) {
+            $component = $this->buildTableComponent($propriedade);
+
+            if ($component) {
+                $this->configuredComponents[$component->getName()] = $component;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Retorna todos os componentes já configurados (executa se ainda não foi feito)
+     *
+     * @return array<Component>
+     */
+    public function getConfiguredComponents(): array
+    {
+        if (empty($this->configuredComponents)) {
+            $this->configureAllComponents();
+        }
+
+        return $this->configuredComponents;
+    }
+
+    /**
+     * Configura todos os componentes de uma vez e armazena internamente.
+     *
+     * @param array<Component>
+     */
+    public function setConfiguredComponents(array $components): self
+    {
+        if (!$this->configuredComponents) {
+            $this->configureAllComponents();
+        }
+
+        $this->configuredComponents = $components;
+        return $this;
+    }
+
+    /**
+     * Cria os componentes da tabela usando os já configurados
+     */
+    public function autoTable(): self
+    {
+        $this->components = [];
+
+        foreach ($this->getConfiguredComponents() as $component) {
+            $this->components[$component->getName()] = $this->createComponent(
+                $component,
+            );
+        }
+
         return $this;
     }
 }

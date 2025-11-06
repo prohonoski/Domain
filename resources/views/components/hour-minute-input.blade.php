@@ -29,7 +29,7 @@
 
             {{ $applyStateBindingModifiers('wire:model') }}="{{ $getStatePath() }}"
             type="{{ $getType() }}"
-
+            {{ $isDisabled() ? 'disabled' : '' }}
             x-ref="input"
             {!! $applyStateBindingModifiers('text-input') !!}
 
@@ -74,6 +74,7 @@ window.hourMinuteInput = function (input) {
         },
 
         onInput(e) {
+            if (this.el.disabled) return;
             const start = this.el.selectionStart; // posição do cursor
 
             let raw = this.el.value;
@@ -108,6 +109,7 @@ window.hourMinuteInput = function (input) {
         },
 
         onBlur() {
+            if (this.el.disabled) return;
             this.el.value = this.formatValue(this.el.value);
             this.updateTotal();
             this.el.dispatchEvent(new Event('input', { bubbles: true }));

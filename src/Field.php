@@ -13,11 +13,12 @@ class Field implements FieldInterface
     private string $name;
     private FieldTypesEnum $type;
     public ?bool $sortable = false;
+    public ?bool $disabled = false;
     public ?bool $searchable = false;
     public ?bool $toggleable = false;
     public ?bool $toggledHiddenByDefault = false;
     public ?bool $wrap = false;
-    public ?array $relation = null;
+    public ?array $relationship = null;
 
     private array $defaultAttrs = [
         "pk" => false,
@@ -82,9 +83,14 @@ class Field implements FieldInterface
         return $this->sortable;
     }
 
+    public function isDisabled(): bool
+    {
+        return $this->disabled;
+    }
+
     public function getRelation(): string|array|null
     {
-        return $this->relation ?? null;
+        return $this->relationship ?? null;
     }
 
     public function isToggleable(): bool

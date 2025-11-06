@@ -2,20 +2,15 @@
 
 namespace Proho\Domain\Adapters;
 
-use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\Column;
 use Proho\Domain\Enums\FieldTypesEnum;
-use Filament\Tables\Columns\TextColumn;
-use OpenSpout\Common\Entity\Comment\TextRun;
-use Proho\Domain\Columns\BadgeColumn as ColumnsBadgeColumn;
-use Proho\Domain\Columns\BadgeColumnAdapter;
 use Proho\Domain\Columns\BooleanColumnAdapter;
+use Proho\Domain\Columns\SelectColumnAdapter;
 use Proho\Domain\Columns\TextColumnAdapter;
 use Proho\Domain\Columns\TextDateColumnAdapter;
 use Proho\Domain\Columns\TextDateTimeColumnAdapter;
-use Proho\Domain\Columns\TextDecimalColumnAdapter;
 use Proho\Domain\Columns\TextHourQtyColumnAdapter;
 use Proho\Domain\Columns\TextNumericColumnAdapter;
-use Proho\Domain\Field;
 use Proho\Domain\Interfaces\BadgeColumnInterface;
 use Proho\Domain\Interfaces\FieldInterface;
 
@@ -23,7 +18,7 @@ class ColumnFilamentAdapter
 {
     private $columnField;
 
-    public function getColumnField()
+    public function getColumnField(): Column
     {
         return $this->columnField;
     }
@@ -60,7 +55,7 @@ class ColumnFilamentAdapter
             FieldTypesEnum::Boolean
                 => ($this->columnField = BooleanColumnAdapter::make($field)),
             FieldTypesEnum::Select
-                => ($this->columnField = TextColumnAdapter::make($field)),
+                => ($this->columnField = SelectColumnAdapter::make($field)),
             FieldTypesEnum::Radio => ($this->columnField = app(
                 BadgeColumnInterface::class,
             )->make($field)),
@@ -75,11 +70,19 @@ class ColumnFilamentAdapter
             ]),
         };
 
+        $toggeable = $field->isToggleable();
+        $toggleableHiddenByDefault = $field->isToggleableHiddenByDefault();
+
+        if ($field->getName() == "id") {
+            $toggeable = true;
+            $toggleableHiddenByDefault = true;
+        }
+
         $this->columnField
-            ->toggleable($field->isToggleable())
+            ->toggleable($toggeable)
             ->searchable($field->isSearchable())
             ->sortable($field->isSortable())
-            ->toggledHiddenByDefault($field->isToggleableHiddenByDefault());
+            ->toggledHiddenByDefault($toggleableHiddenByDefault);
     }
 
     public static function make(FieldInterface $field): self
