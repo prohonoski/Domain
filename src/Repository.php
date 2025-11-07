@@ -23,6 +23,21 @@ class Repository extends EntityRepository
     protected string $notifyType = "default";
     protected NotificationInterface $notificator;
 
+    public function saveService(): string
+    {
+        return BaseSaveService::class;
+    }
+
+    public function createService(): string
+    {
+        return BaseCreateService::class;
+    }
+
+    public function deleteService(): string
+    {
+        return BaseDeleteService::class;
+    }
+
     public function notifyType(): string
     {
         return $this->notifyType;
@@ -111,8 +126,22 @@ class Repository extends EntityRepository
                 \Doctrine\ORM\Mapping\Column::class,
             );
 
+            $mapColumn = null;
             foreach ($atributosDaPropriedade as $atributo) {
                 $mapColumn = $atributo->newInstance();
+            }
+
+            if ($mapColumn == null) {
+                $atributosDaPropriedade = $propriedade->getAttributes(
+                    \Doctrine\ORM\Mapping\JoinColumn::class,
+                );
+                foreach ($atributosDaPropriedade as $atributo) {
+                    $mapColumn = $atributo->newInstance();
+                }
+            }
+
+            if ($mapColumn == null) {
+                continue;
             }
 
             if (
@@ -133,6 +162,7 @@ class Repository extends EntityRepository
                 ][] = $atributo->newInstance()->rule;
             }
         }
+
         return $mapRule;
     }
 

@@ -43,7 +43,6 @@ class FormORM
     public function autoForm(): self
     {
         $this->autoComponents();
-
         $this->applyRules(
             Rules::make(
                 EntityManager::getRepository($this->entity)->getEntityRules(),

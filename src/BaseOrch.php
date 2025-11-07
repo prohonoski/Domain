@@ -1,6 +1,7 @@
 <?php
 namespace Proho\Domain;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Illuminate\Support\MessageBag;
 use LaravelDoctrine\ORM\Facades\EntityManager;
 use Proho\Domain\BaseService;
@@ -16,13 +17,14 @@ abstract class BaseOrch
     protected bool $useTransaction = false;
     protected array $successData = [];
     protected array $failedData = [];
-    protected EntityManager $em;
+    protected EntityManagerInterface $em;
 
     public function __construct(
         protected Repository $repository,
         protected ValidInterface $validator,
     ) {
         $this->errors = new MessageBag();
+        $this->em = $repository->getEm();
     }
 
     public function withFlush(bool $flush = true): static
@@ -225,27 +227,46 @@ abstract class BaseOrch
     // Métodos originais mantidos
     public function create(array $data): static
     {
-        $this->validator->validateForCreate($data);
-        $record = $this->repository->fill($data);
-        EntityManager::persist($record);
-        return $this;
+        // $this->validator->validateForCreate($data);
+        // $record = $this->repository->fill($data);
+        // EntityManager::persist($record);
+        // return $this;
+
+        return $this->runService($this->repository->createService(), [
+            "repository" => $this->repository,
+            "validator" => $this->validator,
+            "data" => $data,
+        ]);
     }
 
     public function update(int $id, array $data): static
     {
-        $this->validator->validateForUpdate($data, $id);
-        $record = $this->repository->fill($data, $this->repository->find($id));
-        EntityManager::persist($record);
-        return $this;
+        return $this->runService($this->repository->saveService(), [
+            "repository" => $this->repository,
+            "validator" => $this->validator,
+            "data" => $data,
+            "id" => $id,
+        ]);
+
+        // $this->validator->validateForUpdate($data, $id);
+        // $record = $this->repository->fill($data, $this->repository->find($id));
+        // EntityManager::persist($record);
+        // return $this;
     }
 
     public function delete(int $id): static
     {
-        $record = $this->repository->find($id);
-        if ($record) {
-            $this->validator->validateForDelete($record->toArray(), $id);
-            EntityManager::remove($record);
-        }
-        return $this;
+        return $this->runService($this->repository->deleteService(), [
+            "repository" => $this->repository,
+            "validator" => $this->validator,
+            "id" => $id,
+        ]);
+
+        // $record = $this->repository->find($id);
+        // if ($record) {
+        //     $this->validator->validateForDelete($record->toArray(), $id);
+        //     EntityManager::remove($record);
+        // }
+        // return $this;
     }
 }
