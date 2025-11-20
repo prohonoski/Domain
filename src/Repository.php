@@ -16,6 +16,7 @@ use LaravelDoctrine\ORM\Facades\EntityManager;
 use ReflectionMethod;
 use ReflectionNamedType;
 use Doctrine\ORM\QueryBuilder;
+use Exception;
 
 class Repository extends EntityRepository
 {
@@ -353,7 +354,22 @@ class Repository extends EntityRepository
         ?string $orderBy = null,
     ): array {
         $query = $this->findOptionsQb($id, $fields, $orderBy)->getQuery();
-        return $query->getArrayResult();
+        // dd($query->getArrayResult());
+
+        $dados = $this->extractFields(
+            $query->getArrayResult(),
+            $fields,
+            " - ",
+            "id",
+        );
+
+        return $this->extractFields(
+            $query->getArrayResult(),
+            $fields,
+            " - ",
+            "id",
+        );
+        // return $query->getArrayResult();
     }
 
     public function findOptionsQb(
@@ -466,13 +482,14 @@ class Repository extends EntityRepository
      * @param array $dados             // Array de entrada
      * @param array $camposConcat      // Lista de campos que serão concatenados
      * @param string $separador        // Separador entre os campos (opcional)
-     * @param string $chaveTipo        // Nome do campo final (default: 'tipo')
+     * @param ?string $id ='id'        // Nome do campo identificador (default: 'id')
      * @return array                   // Array reduzido com id e campo concatenado
      */
     function extractFields(
         array $dados,
         array $camposConcat,
         string $separador = " - ",
+        ?string $id = "id",
     ): array {
         $resultado = [];
 
@@ -481,8 +498,13 @@ class Repository extends EntityRepository
                 fn($campo) => $item[$campo] ?? "",
                 $camposConcat,
             );
+            if (!isset($item[$id])) {
+                throw new Exception(
+                    "Erro montando options (Repository - {$id}) ",
+                );
+            }
 
-            $resultado[$item["id"]] = trim(
+            $resultado[$item[$id]] = trim(
                 implode(
                     $separador,
                     array_filter($valores, fn($v) => $v !== ""),

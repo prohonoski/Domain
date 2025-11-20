@@ -105,6 +105,7 @@ class InputFilamentAdapter
 
                 $lazy = $field->getRelation()["lazyLoad"] ?? false;
                 $limit = $field->getRelation()["limit"] ?? 49;
+                $idRef = $field->getRelation()["ref"] ?? "id";
 
                 $label = $field->getRelation()["label"] ?? null;
                 $labelArray = is_array($label)
@@ -122,6 +123,7 @@ class InputFilamentAdapter
                             $field,
                             $labelArray,
                             $limit,
+                            $idRef,
                         ) {
                             if (strlen($search) < 3) {
                                 return [];
@@ -129,20 +131,12 @@ class InputFilamentAdapter
 
                             $dadosFiltrados = EntityManager::getRepository(
                                 $field->getRelation()["class"],
-                            )->searchOptionsQb(
-                                id: "id",
+                            )->searchOptions(
+                                id: $idRef,
                                 fields: $labelArray,
                                 orderBy: null,
                                 search: $search,
                                 limit: $limit,
-                            );
-
-                            // dd($dadosFiltrados->getQuery()->getScalarResult());
-
-                            $dadosFiltrados = $this->extrairComCamposConcatenados(
-                                $dadosFiltrados->getQuery()->getScalarResult(),
-                                $labelArray,
-                                " - ",
                             );
 
                             $hasMore = count($dadosFiltrados) >= $limit;
@@ -156,22 +150,33 @@ class InputFilamentAdapter
 
                             return $dadosFiltrados;
                         })
-                        ->getOptionLabelUsing(
-                            fn($value): ?string => EntityManager::getRepository(
+                        ->getOptionLabelUsing(function ($value) use (
+                            $field,
+                            $labelArray,
+                            $idRef,
+                        ): ?string {
+                            $repo = EntityManager::getRepository(
                                 $field->getRelation()["class"],
-                            )
-                                ->find(["id" => $value])
-                                ->getNome(),
-                        );
+                            );
+
+                            $dados = [
+                                $repo->find([$idRef => $value])->toArray(),
+                            ];
+
+                            $dados = $repo->extractFields(
+                                $dados,
+                                $labelArray,
+                                " - ",
+                            );
+
+                            return $dados[array_key_first($dados)] ?? null;
+                        });
                 } else {
                     $dadosFiltrados = [];
 
-                    $dadosFiltrados = $this->extrairComCamposConcatenados(
-                        EntityManager::getRepository(
-                            $field->getRelation()["class"],
-                        )->$relationship(),
-                        $labelArray,
-                    );
+                    $dadosFiltrados = EntityManager::getRepository(
+                        $field->getRelation()["class"],
+                    )->$relationship($idRef, $labelArray);
 
                     $this->inputField->options($dadosFiltrados)->searchable();
                 }
@@ -305,35 +310,5 @@ class InputFilamentAdapter
         $static = app(static::class, ["field" => $field]);
         return $static;
     }
-
-    /**
-     * @param array $dados             // Array de entrada
-     * @param array $camposConcat      // Lista de campos que serão concatenados
-     * @param string $separador        // Separador entre os campos (opcional)
-     * @param string $chaveTipo        // Nome do campo final (default: 'tipo')
-     * @return array                   // Array reduzido com id e campo concatenado
-     */
-    function extrairComCamposConcatenados(
-        array $dados,
-        array $camposConcat,
-        string $separador = " - ",
-    ): array {
-        $resultado = [];
-
-        foreach ($dados as $item) {
-            $valores = array_map(
-                fn($campo) => $item[$campo] ?? "",
-                $camposConcat,
-            );
-
-            $resultado[$item["id"]] = trim(
-                implode(
-                    $separador,
-                    array_filter($valores, fn($v) => $v !== ""),
-                ),
-            );
-        }
-
-        return $resultado;
-    }
 }
+

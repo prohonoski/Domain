@@ -32,6 +32,7 @@ class FormORM
         }
 
         $this->components = $itensOrdenados;
+
         return $this;
     }
     /**

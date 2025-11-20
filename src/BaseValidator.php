@@ -2,7 +2,10 @@
 
 namespace Proho\Domain;
 
+use App\Exceptions\BusinessRuleException;
 use Illuminate\Support\MessageBag;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Validator;
 
 abstract class BaseValidator
 {
@@ -11,12 +14,17 @@ abstract class BaseValidator
     protected array $failedData = [];
     public MessageBag $errorsGeneral;
     public MessageBag $errorsValidation;
+    protected array $activeRules = [];
+    protected array $activeMessages = [];
 
     public function __construct()
     {
         $this->errorsGeneral = new MessageBag();
         $this->errorsValidation = new MessageBag();
     }
+
+    abstract public static function rules(): array;
+    abstract public static function messages(): array;
 
     /**
      * Verifica se houve falha
@@ -88,5 +96,54 @@ abstract class BaseValidator
         return collect($errors)
             ->map(fn($msg, $index) => "• $msg")
             ->implode($separator);
+    }
+    public function validateForCreate(array $data, ?int $id = null): void
+    {
+        $this->activeRules = static::rules();
+        $this->activeMessages = static::messages();
+
+        $this->validate($data, $id);
+    }
+    public function validateForUpdate(array $data, int $id): void
+    {
+        $this->activeRules = static::rules();
+        $this->activeMessages = static::messages();
+
+        $this->validate($data, $id);
+    }
+    public function validateForDelete(array $data, ?int $id = null): void
+    {
+        $this->activeRules = static::rules();
+        $this->activeMessages = static::messages();
+
+        $this->validate($data, $id);
+    }
+
+    public function validate(array $data, ?int $id = null): void
+    {
+        // $rules = static::rules();
+        // $messages = static::messages();
+
+        $rules = $this->activeRules;
+        $messages = $this->activeMessages;
+
+        $validator = Validator::make($data, $rules, $messages);
+
+        if ($validator->fails() || $this->errorsValidation->any()) {
+            $allErrors = $validator->errors()->merge($this->errorsValidation);
+
+            // Você pode lançar aqui também, se quiser
+            throw ValidationException::withMessages($allErrors->toArray());
+        }
+        if (
+            $this->errorsGeneral->any() ||
+            $validator->fails() ||
+            $this->errorsValidation->any()
+        ) {
+            $this->failed = true;
+            $this->errorsValidation->merge($validator->errors());
+
+            throw new BusinessRuleException($this->errors()->toArray());
+        }
     }
 }

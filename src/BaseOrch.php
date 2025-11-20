@@ -1,30 +1,32 @@
 <?php
 namespace Proho\Domain;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Illuminate\Support\MessageBag;
 use LaravelDoctrine\ORM\Facades\EntityManager;
 use Proho\Domain\BaseService;
-use Proho\Domain\Interfaces\ValidInterface;
 use Proho\Domain\Repository;
 
 abstract class BaseOrch
 {
     private bool $flush = true;
-    protected MessageBag $errors;
     protected bool $failed = false;
     protected bool $dryRun = false;
     protected bool $useTransaction = false;
     protected array $successData = [];
     protected array $failedData = [];
-    protected EntityManagerInterface $em;
+    protected EntityManager $em;
+
+    protected Repository $repository;
+    protected BaseValidator $validator;
+    protected MessageBag $errors;
 
     public function __construct(
-        protected Repository $repository,
-        protected ValidInterface $validator,
+        Repository $repository,
+        BaseValidator $validator,
     ) {
+        $this->repository = $repository;
+        $this->validator = $validator;
         $this->errors = new MessageBag();
-        $this->em = $repository->getEm();
     }
 
     public function withFlush(bool $flush = true): static
@@ -37,7 +39,13 @@ abstract class BaseOrch
     {
         return $this->flush;
     }
-
+    /**
+     *
+     */
+    public function isDryRun(): bool
+    {
+        return $this->dryRun;
+    }
     /**
      * Ativa modo dry run
      */
@@ -68,28 +76,35 @@ abstract class BaseOrch
     /**
      * Executa um service internamente e coleta erros/sucessos
      *
-     * @param class-string<BaseService> $serviceClass
+     * @param class-string<BaseService>|BaseService $serviceClass
+     *        - string: Service será instanciado e configurado pelo Orch
+     *        - BaseService: Service pré-configurado será executado como está
      * @param array $params Parâmetros para o construtor do service
      * @return self
      */
     protected function runService(
-        string $serviceClass,
+        string|BaseService $serviceClass,
         array $params = [],
     ): static {
-        // Instancia o service com os parâmetros
-        $service = app($serviceClass, $params);
+        $service = $serviceClass;
 
-        // Aplica configurações do orquestrador
-        if ($this->dryRun) {
-            $service->dryRun(true);
-        }
+        // Instancia o service com os parâmetros do ORCH
+        if (\is_string($serviceClass)) {
+            /** @var BaseService $service  */
+            $service = app($serviceClass, $params);
 
-        if ($this->useTransaction) {
-            $service->withTransaction();
-        }
+            // Aplica configurações do orquestrador
+            if ($this->dryRun) {
+                $service->dryRun(true);
+            }
 
-        if ($this->flush) {
-            $service->withFlush();
+            if ($this->useTransaction) {
+                $service->withTransaction();
+            }
+
+            if ($this->flush) {
+                $service->withFlush();
+            }
         }
 
         // Executa o service
@@ -197,6 +212,27 @@ abstract class BaseOrch
             "total" => count($this->successData) + count($this->failedData),
             "has_errors" => $this->failed,
         ];
+    }
+
+    /**
+     * Adiciona um erro ao MessageBag
+     */
+    protected function addError(
+        string $key,
+        string $message,
+        mixed $context = null,
+    ): void {
+        $this->failed = true;
+
+        $this->errors->add($key, $message);
+
+        if ($context !== null) {
+            $this->failedData[] = [
+                "key" => $key,
+                "message" => $message,
+                "context" => $context,
+            ];
+        }
     }
 
     /**
