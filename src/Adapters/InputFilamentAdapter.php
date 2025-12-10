@@ -103,7 +103,11 @@ class InputFilamentAdapter
                 $relationship =
                     $field->getRelation()["relationship"] ?? "findOptions";
 
+                $searchMethod = $relationship =
+                    $field->getRelation()["relationship"] ?? "findOptions";
+
                 $lazy = $field->getRelation()["lazyLoad"] ?? false;
+
                 $limit = $field->getRelation()["limit"] ?? 49;
                 $idRef = $field->getRelation()["ref"] ?? "id";
 
@@ -119,14 +123,23 @@ class InputFilamentAdapter
                         ->searchable()
                         ->noSearchResultsMessage("Nenhuma registro encontrado")
                         ->searchPrompt("Digite 3 caracteres para buscar...")
+
                         ->getSearchResultsUsing(function (string $search) use (
                             $field,
                             $labelArray,
                             $limit,
                             $idRef,
+                            $searchMethod,
                         ) {
                             if (strlen($search) < 3) {
                                 return [];
+                            }
+
+                            $qb = null;
+                            if ($searchMethod != "findOptions") {
+                                $qb = EntityManager::getRepository(
+                                    $field->getRelation()["class"],
+                                )->$searchMethod();
                             }
 
                             $dadosFiltrados = EntityManager::getRepository(
@@ -137,6 +150,7 @@ class InputFilamentAdapter
                                 orderBy: null,
                                 search: $search,
                                 limit: $limit,
+                                qb: $qb,
                             );
 
                             $hasMore = count($dadosFiltrados) >= $limit;
@@ -174,9 +188,21 @@ class InputFilamentAdapter
                 } else {
                     $dadosFiltrados = [];
 
+                    $qb = null;
+                    if ($searchMethod != "findOptions") {
+                        $qb = EntityManager::getRepository(
+                            $field->getRelation()["class"],
+                        )->$searchMethod();
+                    }
+                    // if ($qb != null) {
+                    //     dd($qb->getDQL());
+                    // }
+                    //dd($relationship);
+                    //
+
                     $dadosFiltrados = EntityManager::getRepository(
                         $field->getRelation()["class"],
-                    )->$relationship($idRef, $labelArray);
+                    )->findOptions(id: $idRef, fields: $labelArray, qb: $qb);
 
                     $this->inputField->options($dadosFiltrados)->searchable();
                 }

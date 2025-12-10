@@ -1,6 +1,13 @@
-{
+  {
   "name": "proho/domain",
   "description": "Domain and adapter layer for isolate business rules",
+  "license": "MIT",
+    "authors": [
+        {
+            "name": "Anderson Prohonoski",
+            "email": "prohonoski@me.com"
+        }
+    ],
   "autoload": {
     "psr-4": {
       "Proho\\Domain\\": "src/"

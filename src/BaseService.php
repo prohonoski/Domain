@@ -140,10 +140,10 @@ abstract class BaseService
             $this->em::getConnection()->transactional(function () {
                 return $this->handle();
             });
-            Log::debug("executo o handle no trans");
+            //   Log::debug("executo o handle no trans");
 
             if ($this->useFlush) {
-                Log::debug("executo o flush 1");
+                //  Log::debug("executo o flush 1");
                 $this->em::flush();
             }
 
@@ -152,7 +152,7 @@ abstract class BaseService
 
         $this->handle();
         if ($this->useFlush) {
-            Log::debug("executo o flush 2");
+           // Log::debug("executo o flush 2");
             $this->em::flush();
         }
         return $this;

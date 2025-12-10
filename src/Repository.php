@@ -352,16 +352,27 @@ class Repository extends EntityRepository
         mixed $id = "id",
         ?array $fields = ["id"],
         ?string $orderBy = null,
+        ?QueryBuilder $qb = null,
     ): array {
-        $query = $this->findOptionsQb($id, $fields, $orderBy)->getQuery();
-        // dd($query->getArrayResult());
+        try {
+            $query = $this->findOptionsQb(
+                $id,
+                $fields,
+                $orderBy,
+                $qb,
+            )->getQuery();
 
-        $dados = $this->extractFields(
-            $query->getArrayResult(),
-            $fields,
-            " - ",
-            "id",
-        );
+            //dd($query->getArrayResult());
+
+            $dados = $this->extractFields(
+                $query->getArrayResult(),
+                $fields,
+                " - ",
+                "id",
+            );
+        } catch (Exception $e) {
+            dd($qb, $query->getDQL(), $e);
+        }
 
         return $this->extractFields(
             $query->getArrayResult(),
@@ -376,32 +387,30 @@ class Repository extends EntityRepository
         mixed $id = "id",
         ?array $fields = ["id"],
         ?string $orderBy = null,
+        ?QueryBuilder $qb = null,
     ): QueryBuilder {
         // Select fields
         //
-        if ($fields == ["id"]) {
-            $selectFields = ["a"];
+
+        if ($qb != null) {
         } else {
-            $selectFields = ["a.{$id}"];
-            foreach ($fields as $field) {
-                $selectFields[] = "a.{$field}";
+            if ($fields == ["id"]) {
+                $selectFields = ["a"];
+            } else {
+                $selectFields = ["a.{$id}"];
+                foreach ($fields as $field) {
+                    $selectFields[] = "a.{$field}";
+                }
             }
+
+            $orderField = $orderBy ?: $fields[0];
+            $qb = $this->createQueryBuilder("a");
+            $qb->select($selectFields);
+            $qb->orderBy("a.{$orderField}", "ASC");
         }
 
-        $orderField = $orderBy ?: $fields[0];
-
-        $qb = $this->createQueryBuilder("a");
-        $qb->select($selectFields);
-        $qb->orderBy("a.{$orderField}", "ASC");
-
-        // $query = $this->getEm()->createQuery(
-        //     "SELECT a FROM " .
-        //         $this->getEntityName() .
-        //         " a" .
-        //         " ORDER BY a." .
-        //        ,
-        // );
         return $qb;
+
     }
 
     /**
@@ -426,8 +435,16 @@ class Repository extends EntityRepository
         ?string $orderBy = null,
         ?string $search = null,
         int $limit = 50,
+        ?QueryBuilder $qb = null,
     ): array {
-        $data = $this->searchOptionsQb($id, $fields, $orderBy, $search, $limit);
+        $data = $this->searchOptionsQb(
+            $id,
+            $fields,
+            $orderBy,
+            $search,
+            $limit,
+            $qb,
+        );
 
         return $this->extractFields(
             $data->getQuery()->getScalarResult(),
@@ -442,8 +459,9 @@ class Repository extends EntityRepository
         ?string $orderBy = null,
         ?string $search = null,
         int $limit = 50,
+        ?QueryBuilder $qb = null,
     ): QueryBuilder {
-        $qb = $this->createQueryBuilder("a");
+        $qb ??= $this->createQueryBuilder("a");
 
         // Select fields
         $selectFields = ["a.{$id}"];
