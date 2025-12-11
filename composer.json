@@ -1,4 +1,4 @@
-  {
+{
   "name": "proho/domain",
   "description": "Domain and adapter layer for isolate business rules",
   "license": "MIT",
