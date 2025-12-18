@@ -1,7 +1,7 @@
 <?php
 
 namespace Proho\Domain;
-
+/// NAO ESTA SENDO USADO REMOVER
 class Table
 {
     protected $components = [];
