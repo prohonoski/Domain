@@ -2,6 +2,6 @@ on: [push]
 
 jobs:
   test:
-    runs-on: docker
+    runs-on: docker:local
     steps:
       - run: echo "Forgejo Actions funcionando!"
