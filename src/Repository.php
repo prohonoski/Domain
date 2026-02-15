@@ -589,71 +589,28 @@ class Repository extends EntityRepository
         return $qb->getQuery()->getOneOrNullResult() !== null;
     }
 
+
+
+
     /**
-     * Obtém o próximo valor da sequência do ID da tabela
-     * Funciona com PostgreSQL, MySQL e outros bancos suportados pelo Doctrine
-     *
-     * @return int O próximo ID disponível
-     * @throws \Exception Se não conseguir determinar a sequência ou tabela
+     * Override para compatibilidade com DBAL 4.x
+     * (getDatabasePlatform()->getName() foi removido)
      */
     public function getNextId(): int
     {
-        $connection = $this->getEntityManager()->getConnection();
-        $platform = $connection->getDatabasePlatform()->getName();
-
-        // Obtém metadados da entidade
         $classMetadata = $this->getClassMetadata();
         $tableName = $classMetadata->getTableName();
         $schema = $classMetadata->getSchemaName();
+        $idColumnName = $classMetadata->getSingleIdentifierColumnName();
 
-        // Nome completo da tabela com schema se existir
-        $fullTableName = $schema ? "{$schema}.{$tableName}" : $tableName;
+        $sequenceName = $schema
+            ? "{$schema}.{$tableName}_{$idColumnName}_seq"
+            : "{$tableName}_{$idColumnName}_seq";
 
-        switch ($platform) {
-            case "postgresql":
-                // PostgreSQL usa sequences
-                // Formato padrão: schema.tablename_columnname_seq
-                $idColumnName = $classMetadata->getSingleIdentifierColumnName();
-                $sequenceName = $schema
-                    ? "{$schema}.{$tableName}_{$idColumnName}_seq"
-                    : "{$tableName}_{$idColumnName}_seq";
-
-                $sql = "SELECT nextval('{$sequenceName}')";
-                break;
-
-            case "mysql":
-                // MySQL usa AUTO_INCREMENT
-                $sql = "SELECT AUTO_INCREMENT
-                        FROM information_schema.TABLES
-                        WHERE TABLE_SCHEMA = DATABASE()
-                        AND TABLE_NAME = '{$tableName}'";
-                break;
-
-            case "sqlite":
-                // SQLite usa sqlite_sequence
-                $sql = "SELECT seq + 1 FROM sqlite_sequence WHERE name = '{$tableName}'";
-                break;
-
-            case "mssql":
-            case "sqlsrv":
-                // SQL Server usa IDENT_CURRENT
-                $sql = "SELECT IDENT_CURRENT('{$fullTableName}') + 1";
-                break;
-
-            default:
-                throw new \Exception(
-                    "Plataforma de banco de dados não suportada: {$platform}",
-                );
-        }
-
-        $result = $connection->executeQuery($sql)->fetchOne();
-
-        if ($result === false || $result === null) {
-            // Se não houver resultado, provavelmente a tabela está vazia
-            // Retorna 1 como primeiro ID
-            return 1;
-        }
-
-        return (int) $result;
+        $connection = $this->getEntityManager()->getConnection();
+        return (int) $connection
+            ->executeQuery("SELECT nextval('{$sequenceName}')")
+            ->fetchOne();
     }
+
 }
