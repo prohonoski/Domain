@@ -17,13 +17,17 @@ class BaseCreateService extends BaseService
     }
     protected function handle(): self
     {
+        if (empty($this->data["id"])) {
+            $this->data["id"] = $this->repository->getNextId();
+        }
+
         $this->validator->validateForCreate($this->data);
         $record = $this->repository->fill($this->data, null);
         $this->em::persist($record);
 
         $this->addSuccess([
             "context" => [
-                "id" => "new",
+                "id" => $record,
                 "message" => "Registro criado",
             ],
         ]);

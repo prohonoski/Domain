@@ -5,6 +5,7 @@ namespace Proho\Domain\Adapters;
 use Filament\Tables\Columns\Column;
 use Proho\Domain\Enums\FieldTypesEnum;
 use Proho\Domain\Columns\BooleanColumnAdapter;
+use Proho\Domain\Columns\JsonColumnAdapter;
 use Proho\Domain\Columns\SelectColumnAdapter;
 use Proho\Domain\Columns\TextColumnAdapter;
 use Proho\Domain\Columns\TextDateColumnAdapter;
@@ -54,13 +55,21 @@ class ColumnFilamentAdapter
                 => ($this->columnField = TextDateColumnAdapter::make($field)),
             FieldTypesEnum::Boolean
                 => ($this->columnField = BooleanColumnAdapter::make($field)),
+
             FieldTypesEnum::Select
-                => ($this->columnField = SelectColumnAdapter::make($field)),
+                => ( ($field?->getColumnAttr()[0] ?? null)?->getArguments()["enumType"] ?? null) ?  $this->columnField = (app(
+                                     BadgeColumnInterface::class,
+                                 )->make($field)) : $this->columnField = SelectColumnAdapter::make($field),
+
             FieldTypesEnum::Radio => ($this->columnField = app(
                 BadgeColumnInterface::class,
             )->make($field)),
             FieldTypesEnum::HourQty
                 => ($this->columnField = TextHourQtyColumnAdapter::make(
+                $field,
+            )),
+            FieldTypesEnum::Json
+                => ($this->columnField = JsonColumnAdapter::make(
                 $field,
             )),
             default => dd([

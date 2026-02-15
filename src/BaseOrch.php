@@ -29,6 +29,11 @@ abstract class BaseOrch
         $this->errors = new MessageBag();
     }
 
+    public function getRepository(): Repository
+    {
+        return $this->repository;
+    }
+
     public function withFlush(bool $flush = true): static
     {
         $this->flush = $flush;

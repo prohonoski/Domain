@@ -21,4 +21,6 @@ enum FieldTypesEnum: string
     case HourQty = "hourqty";
     case Cpf = "cpf";
     case Fone = "fone";
+    case Hidden = "hidden";
+    case Json = "json";
 }

@@ -107,6 +107,23 @@ class Repository extends EntityRepository
         return $this;
     }
 
+    /**
+     * Busca case-insensitive por campo
+     */
+    public function findOneByCaseInsensitive(array $criteria): ?object
+    {
+        $qb = $this->createQueryBuilder("e");
+
+        $index = 0;
+        foreach ($criteria as $field => $value) {
+            $qb->andWhere("LOWER(e.{$field}) = LOWER(:param{$index})");
+            $qb->setParameter("param{$index}", $value);
+            $index++;
+        }
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
     public function getEntityRules()
     {
         $mapRule = null;
@@ -174,6 +191,7 @@ class Repository extends EntityRepository
         $classe = $this->getEntityName();
 
         $sm = $sm ?? new $classe();
+
         foreach ($data as $key => $field) {
             $method = $this->snakeToPascalCase("set" . $key);
 
@@ -189,7 +207,10 @@ class Repository extends EntityRepository
                 ) {
                     // Conversão para Enum
                     $enumClass = $type->getName();
-                    $enumValue = $enumClass::tryFrom($field);
+                    $enumValue =
+                        $field instanceof \UnitEnum
+                            ? $field
+                            : $enumClass::tryFrom($field);
 
                     if ($enumValue !== null) {
                         $sm->$method($enumValue);
@@ -566,5 +587,73 @@ class Repository extends EntityRepository
         }
         $qb->setMaxResults(1);
         return $qb->getQuery()->getOneOrNullResult() !== null;
+    }
+
+    /**
+     * Obtém o próximo valor da sequência do ID da tabela
+     * Funciona com PostgreSQL, MySQL e outros bancos suportados pelo Doctrine
+     *
+     * @return int O próximo ID disponível
+     * @throws \Exception Se não conseguir determinar a sequência ou tabela
+     */
+    public function getNextId(): int
+    {
+        $connection = $this->getEntityManager()->getConnection();
+        $platform = $connection->getDatabasePlatform()->getName();
+
+        // Obtém metadados da entidade
+        $classMetadata = $this->getClassMetadata();
+        $tableName = $classMetadata->getTableName();
+        $schema = $classMetadata->getSchemaName();
+
+        // Nome completo da tabela com schema se existir
+        $fullTableName = $schema ? "{$schema}.{$tableName}" : $tableName;
+
+        switch ($platform) {
+            case "postgresql":
+                // PostgreSQL usa sequences
+                // Formato padrão: schema.tablename_columnname_seq
+                $idColumnName = $classMetadata->getSingleIdentifierColumnName();
+                $sequenceName = $schema
+                    ? "{$schema}.{$tableName}_{$idColumnName}_seq"
+                    : "{$tableName}_{$idColumnName}_seq";
+
+                $sql = "SELECT nextval('{$sequenceName}')";
+                break;
+
+            case "mysql":
+                // MySQL usa AUTO_INCREMENT
+                $sql = "SELECT AUTO_INCREMENT
+                        FROM information_schema.TABLES
+                        WHERE TABLE_SCHEMA = DATABASE()
+                        AND TABLE_NAME = '{$tableName}'";
+                break;
+
+            case "sqlite":
+                // SQLite usa sqlite_sequence
+                $sql = "SELECT seq + 1 FROM sqlite_sequence WHERE name = '{$tableName}'";
+                break;
+
+            case "mssql":
+            case "sqlsrv":
+                // SQL Server usa IDENT_CURRENT
+                $sql = "SELECT IDENT_CURRENT('{$fullTableName}') + 1";
+                break;
+
+            default:
+                throw new \Exception(
+                    "Plataforma de banco de dados não suportada: {$platform}",
+                );
+        }
+
+        $result = $connection->executeQuery($sql)->fetchOne();
+
+        if ($result === false || $result === null) {
+            // Se não houver resultado, provavelmente a tabela está vazia
+            // Retorna 1 como primeiro ID
+            return 1;
+        }
+
+        return (int) $result;
     }
 }

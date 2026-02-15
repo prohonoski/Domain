@@ -25,9 +25,10 @@ class Component implements FieldInterface
         private ?bool $searchable = false,
         private ?array $options = null,
         private ?array $relationship = null,
+        private ?string $default = null,
     ) {
         $this->fill = $fill ?? true;
-        $this->visible = $fill ?? true;
+        $this->visible = $visible ?? true;
     }
 
     public function getType(): FieldTypesEnum
@@ -73,6 +74,17 @@ class Component implements FieldInterface
         return $this->sortable;
     }
 
+    public function setVisible(bool $state): self
+    {
+        $this->visible = $state;
+        return $this;
+    }
+
+    public function isVisible(): bool
+    {
+        return $this->visible;
+    }
+
     public function disabled(bool $state): self
     {
         $this->disabled = $state;
@@ -89,6 +101,17 @@ class Component implements FieldInterface
         return $this->label;
     }
 
+    public function setDefault(string $name): self
+    {
+        $this->default = $name;
+        return $this;
+    }
+
+    public function getDefault(): string|null
+    {
+        return $this->default ?? null;
+    }
+
     public function setHint(string $name): self
     {
         $this->hint = $name;
@@ -98,11 +121,6 @@ class Component implements FieldInterface
     public function getHint(): string|null
     {
         return $this->hint ?? null;
-    }
-
-    public function getDefault(): string|null
-    {
-        return $this->default ?? null;
     }
 
     public function getHintType(): string

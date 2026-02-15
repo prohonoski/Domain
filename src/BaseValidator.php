@@ -2,10 +2,10 @@
 
 namespace Proho\Domain;
 
-use App\Exceptions\BusinessRuleException;
 use Illuminate\Support\MessageBag;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Validator;
+use Proho\Domain\Exceptions\BusinessRuleException;
 
 abstract class BaseValidator
 {
@@ -124,8 +124,8 @@ abstract class BaseValidator
         // $rules = static::rules();
         // $messages = static::messages();
 
-        $rules = $this->activeRules;
-        $messages = $this->activeMessages;
+        $rules = $this->activeRules ?: static::rules();
+        $messages = $this->activeMessages ?: static::messages();
 
         $validator = Validator::make($data, $rules, $messages);
 
@@ -135,6 +135,7 @@ abstract class BaseValidator
             // Você pode lançar aqui também, se quiser
             throw ValidationException::withMessages($allErrors->toArray());
         }
+
         if (
             $this->errorsGeneral->any() ||
             $validator->fails() ||

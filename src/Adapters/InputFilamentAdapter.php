@@ -12,7 +12,10 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
+use Filament\Support\RawJs;
 use LaravelDoctrine\ORM\Facades\EntityManager;
 use Proho\FilamentPtbrFormFields\PtbrCpfCnpj;
 use Proho\FilamentPtbrFormFields\PtbrPhone;
@@ -36,7 +39,12 @@ class InputFilamentAdapter
         // if ($field->getType() == FieldTypesEnum::Select) {
         //     dd($field);
         // }
+        //
+
         match ($field->getType()) {
+            FieldTypesEnum::Hidden => ($this->inputField = Hidden::make(
+                $field->getName(),
+            )),
             FieldTypesEnum::String => ($this->inputField = TextInput::make(
                 $field->getName(),
             )),
@@ -46,9 +54,12 @@ class InputFilamentAdapter
             FieldTypesEnum::TextArea => ($this->inputField = Textarea::make(
                 $field->getName(),
             )),
+
             FieldTypesEnum::Decimal => ($this->inputField = TextInput::make(
                 $field->getName(),
-            )->numeric()),
+            )
+                ->numeric()
+                ->extraInputAttributes(["style" => "text-align:right"])),
             FieldTypesEnum::Date => ($this->inputField = DatePicker::make(
                 $field->getName(),
             )->displayFormat("d/m/Y")),
@@ -80,6 +91,13 @@ class InputFilamentAdapter
             FieldTypesEnum::Fone => ($this->inputField = PtbrPhone::make(
                 $field->getName(),
             )->minLength(10)),
+            FieldTypesEnum::Json => ($this->inputField = KeyValue::make(
+                $field->getName(),
+            )
+                ->keyLabel("Chave")
+                ->valueLabel("Valor")
+                ->addActionLabel("Adicionar")
+                ->reorderable()),
         };
 
         if (in_array($field->getType(), [FieldTypesEnum::String])) {
@@ -199,6 +217,9 @@ class InputFilamentAdapter
                     // }
                     //dd($relationship);
                     //
+                    //$dadosFiltrados = EntityManager::getRepository(
+                    //    $field->getRelation()["class"],
+                    //)->$relationship($idRef, $labelArray);
 
                     $dadosFiltrados = EntityManager::getRepository(
                         $field->getRelation()["class"],
@@ -289,8 +310,28 @@ class InputFilamentAdapter
                 }
             }
 
-            if ($field->getDefault() !== null) {
-                $this->inputField->default($field->getDefault());
+            $default = null;
+            foreach ($field->getColumnAttr() as $key => $value) {
+                $default = data_get(
+                    $value->getArguments(),
+                    "options.default",
+                    null,
+                );
+            }
+
+            if ($field->isVisible() === false) {
+                $this->inputField->visible(false);
+            }
+
+            if ($field->getDefault()) {
+                $default = $field->getDefault();
+            }
+
+            if ($default !== null) {
+                if ($default == "CURRENT_TIMESTAMP") {
+                    $default = now();
+                }
+                $this->inputField->default($default);
             }
 
             if ($field->getDatalist() !== null) {

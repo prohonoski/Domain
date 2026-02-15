@@ -7,6 +7,9 @@ use LaravelDoctrine\ORM\Facades\EntityManager;
 
 class BaseEntity
 {
+    /**
+     * @return array<mixed, mixed>
+     */
     public function toArray(?object $entity = null): array
     {
         $entity = $entity ?: $this;

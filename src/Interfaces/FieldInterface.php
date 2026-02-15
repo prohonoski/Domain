@@ -18,4 +18,8 @@ interface FieldInterface
     public function isToggleableHiddenByDefault(): bool;
     public function isWrap(): bool;
     public function getRelation(): string|array|null;
+    public function setDefault(string $default): self;
+    public function getDefault(): ?string;
+    public function setVisible(bool $state): self;
+    public function isVisible(): bool;
 }

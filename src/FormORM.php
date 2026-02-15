@@ -356,4 +356,87 @@ class FormORM
 
         return $this;
     }
+
+    /**
+     * Cria um objeto Component a partir de uma propriedade específica de qualquer entidade
+     *
+     * Permite criar componentes individuais de propriedades de qualquer classe,
+     * com possibilidade de customizar o nome do componente (útil para reutilizar
+     * a mesma propriedade com nomes diferentes no formulário).
+     *
+     * @param string $propertyName Nome da propriedade na Entity
+     * @param string|null $className Nome da classe Entity (null usa $this->entity)
+     * @param string|null $customName Nome customizado para o componente (opcional)
+     * @return Component|null Retorna o Component configurado ou null se não encontrar
+     */
+    public function createComponentFromProperty(
+        string $propertyName,
+        ?string $className = null,
+        ?string $customName = null,
+    ): ?Component {
+        $className ??= $this->entity;
+
+        $reflection = new ReflectionClass($className);
+        $property = $reflection->getProperty($propertyName);
+
+        // Busca o atributo Component
+        $componentAttributes = $property->getAttributes(Component::class);
+
+        if (empty($componentAttributes)) {
+            return null;
+        }
+
+        // Pega o primeiro atributo Component encontrado
+        $componentAttr = $componentAttributes[0];
+
+        // Cria a instância do Component
+        $component = $componentAttr->newInstance();
+
+        // Busca os atributos ORM Column
+        $ormColumnAttributes = $property->getAttributes(
+            \Doctrine\ORM\Mapping\Column::class,
+        );
+
+        // Configura o Component com os dados da propriedade
+        $component->setColumnAttr($ormColumnAttributes);
+
+        // Usa o nome customizado se fornecido, senão usa o nome da propriedade
+        $finalName = $customName ?? ($component->getName() ?? $propertyName);
+        $component->setName($finalName);
+        $component->setLabel($component->getLabel() ?? $propertyName);
+
+        return $component;
+    }
+
+    /**
+     * Cria um campo de input Filament a partir de uma propriedade de qualquer entidade
+     *
+     * Este método combina createComponentFromProperty + InputInterface, retornando
+     * diretamente o campo Filament pronto para uso. É um atalho conveniente para
+     * o padrão comum de criar Component e depois transformar em InputField.
+     *
+     * @param string $propertyName Nome da propriedade na Entity
+     * @param string|null $className Nome da classe Entity (null usa $this->entity)
+     * @param string|null $customName Nome customizado para o componente (opcional)
+     * @return mixed Retorna o campo Filament (ex: Select, TextInput, etc) ou null
+     */
+    public function createInputFieldFromProperty(
+        string $propertyName,
+        ?string $className = null,
+        ?string $customName = null,
+    ) {
+        $component = $this->createComponentFromProperty(
+            $propertyName,
+            $className,
+            $customName,
+        );
+
+        if (!$component) {
+            return null;
+        }
+
+        return app(InputInterface::class, [
+            "field" => $component,
+        ])->getInputField();
+    }
 }

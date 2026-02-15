@@ -3,6 +3,8 @@
 namespace Proho\Domain\Columns;
 
 use Filament\Tables\Columns\TextColumn;
+use Proho\Domain\Contracts\HasColor;
+use Proho\Domain\Contracts\HasLabel;
 use Proho\Domain\Interfaces\BadgeColumnInterface;
 use Proho\Domain\Interfaces\FieldInterface;
 
@@ -24,49 +26,27 @@ class TextBadgeColumnAdapter implements BadgeColumnInterface
             ->label($field->getLabel());
 
         foreach ($field->getColumnAttr() as $key => $value) {
-            if (isset($value->getArguments()["enumType"])) {
-                $column->formatStateUsing(
-                    static fn($state): ?string => $value
-                        ->getArguments()
-                        ["enumType"]::toArray()[$state] ??
-                        ($default ?? $state)
-                );
-                //   dd($value->getArguments()["enumType"]);
-                //
-                //
+            $enumClass = $value->getArguments()["enumType"];
+            // Safely try to create an enum instance from the state (value)
 
-                //$column->enum($value->getArguments()["enumType"]::toArray());
-                //->colors(
-                // [
-                //     "primary" => static fn(
-                //         $state
-                //     ): bool => $state == 1 || $state == 4,
-                // ]
+            if (is_subclass_of($enumClass, HasLabel::class)) {
+                $column->formatStateUsing(static function ($state) use (
+                    $value,
+                    $enumClass,
+                ): ?string {
+                    $enumInstance = $enumClass::tryFrom($state);
+                    return $enumInstance->getLabel();
+                });
+            }
 
-                // ->colors(static function ($state) use ($value) {
-                //     dd("aaa");
-                //     dd(
-                //         $value
-                //             ->getArguments()
-                //             ["enumType"]::getColors(["state" => $state])
-                //     );
-
-                //     return $value
-                //         ->getArguments()
-                //         ["enumType"]::getColors($state);
-                // }
-                //);
-                //);
-                // ->colors([
-                //     "primary" => static fn($state): bool => $state ==
-                //         1 || $state == 4,
-                //     "warning" => static fn($state): bool => $state == 2,
-                //     "success" => static fn($state): bool => $state == 3,
-                //     "secondary" => static fn($state): bool => in_array(
-                //         $state,
-                //         [5, 6, 7]
-                //     ),
-                // ]);
+            if (is_subclass_of($enumClass, HasColor::class)) {
+                $column->color(static function ($state) use (
+                    $value,
+                    $enumClass,
+                ): ?string {
+                    $enumInstance = $enumClass::tryFrom($state);
+                    return $enumInstance->getColor();
+                });
             }
         }
         return $column;
