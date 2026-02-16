@@ -20,7 +20,7 @@ jobs:
           #echo "tag=v$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
           #VERSION_BASE="v3.0"
           #tag="${VERSION_BASE}.${{ github.run_number }}"
-          #echo "Criando release para a tag"
+          echo "Criando release para a tag"
           echo "v3.0.${{ github.run_number }}" >> $GITHUB_OUTPUT
 
       - name: Create Release
