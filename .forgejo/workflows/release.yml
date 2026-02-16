@@ -18,11 +18,11 @@ jobs:
           # Gera uma tag baseada na data e hora (ex: 2026.02.16-1030)
           # Você também pode ler a versão de um arquivo (package.json, VERSION, etc)
           #echo "tag=v$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
-          #VERSION_BASE="v3.0"
+          VERSION_BASE="v3.0"
           tag="${VERSION_BASE}.${{ github.run_number }}"
           echo "Criando release para a tag: $tag"
           echo $tag >> $GITHUB_OUTPUT
-          echo $$GITHUB_OUTPUT
+          echo $GITHUB_OUTPUT
 
       - name: Create Release
         uses: https://github.com/softprops/action-gh-release@v2
