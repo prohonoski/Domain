@@ -1,7 +1,0 @@
-on: [push]
-
-jobs:
-  test:
-    runs-on: lubuntu
-    steps:
-      - run: echo "Forgejo Actions funcionando!"
