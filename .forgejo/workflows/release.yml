@@ -29,7 +29,7 @@ jobs:
         with:
           tag_name: ${{ steps.tag_name.outputs.tag }}
           name: Release ${{ steps.tag_name.outputs.tag }}
-          body:  "Build automatizada nº ${{ github.run_number }} realizada em $(date +'%d/%m/%Y %H:%M')"
+          body:  "Build automatizada nº ${{ github.run_number }} "
           draft: false
           prerelease: false
         env:
