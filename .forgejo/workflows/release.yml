@@ -17,14 +17,17 @@ jobs:
         run: |
           # Gera uma tag baseada na data e hora (ex: 2026.02.16-1030)
           # Você também pode ler a versão de um arquivo (package.json, VERSION, etc)
-          echo "tag=v$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
+          #echo "tag=v$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
+          VERSION_BASE="v3.0"
+          tag="${VERSION_BASE}.${{ github.run_number }}"
+          echo "Criando release para a tag: $tag"
 
       - name: Create Release
         uses: https://github.com/softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag_name.outputs.tag }}
           name: Release ${{ steps.tag_name.outputs.tag }}
-          body: "Release automática gerada pelo workflow após push na branch main."
+          body:  "Build automatizada nº ${{ github.run_number }} realizada em $(date +'%d/%m/%Y %H:%M')"
           draft: false
           prerelease: false
         env:
