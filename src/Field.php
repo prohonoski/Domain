@@ -16,6 +16,8 @@ class Field implements FieldInterface
     public ?bool $disabled = false;
     public ?bool $searchable = false;
     public ?bool $toggleable = false;
+    public ?bool $visible = false;
+    private string $default;
     public ?bool $toggledHiddenByDefault = false;
     public ?bool $wrap = false;
     public ?array $relationship = null;
@@ -96,6 +98,22 @@ class Field implements FieldInterface
     public function isToggleable(): bool
     {
         return $this->toggleable;
+    }
+
+    public function isVisible(): bool
+    {
+        return $this->visible;
+    }
+    public function setVisible(bool $state): self
+    {
+        $this->visible = $state;
+        return $this;
+    }
+
+    public function setDefault(string $default): self
+    {
+        $this->default = $default;
+        return $this;
     }
 
     public function isToggleableHiddenByDefault(): bool
