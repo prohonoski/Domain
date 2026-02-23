@@ -14,18 +14,26 @@ class DomainServiceProvider extends FilamentServiceProvider
         parent::register();
 
         // Filament v3 possui a classe Filament\Panel; v2 não.
-        $isV3 = class_exists(\Filament\Panel::class);
+        // Guard para evitar redeclaração em testes (register() pode ser chamado mais de uma vez)
+        if (
+            !trait_exists(
+                "Proho\Domain\Traits\Filament\HasOrchestratorActions",
+                false,
+            )
+        ) {
+            $isV3 = class_exists(\Filament\Panel::class);
 
-        if ($isV3) {
-            class_alias(
-                HasOrchestratorActionsV3::class,
-                "Proho\Domain\Traits\Filament\HasOrchestratorActions",
-            );
-        } else {
-            class_alias(
-                HasOrchestratorActionsV2::class,
-                "Proho\Domain\Traits\Filament\HasOrchestratorActions",
-            );
+            if ($isV3) {
+                class_alias(
+                    HasOrchestratorActionsV3::class,
+                    "Proho\Domain\Traits\Filament\HasOrchestratorActions",
+                );
+            } else {
+                class_alias(
+                    HasOrchestratorActionsV2::class,
+                    "Proho\Domain\Traits\Filament\HasOrchestratorActions",
+                );
+            }
         }
     }
 
