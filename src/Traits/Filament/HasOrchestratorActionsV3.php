@@ -5,9 +5,7 @@ namespace Proho\Domain\Traits\Filament;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
-use Filament\Tables\Actions\DeleteAction as TableDeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction as TableEditAction;
 use Illuminate\Database\Eloquent\Model;
 use LaravelDoctrine\ORM\Facades\EntityManager;
 
@@ -131,13 +129,13 @@ trait HasOrchestratorActionsV3
         return $action;
     }
 
-    public static function getTableEditAction(): TableEditAction
+    public static function getTableEditAction(): EditAction
     {
-        return TableEditAction::make()
+        return EditAction::make()
             ->action(function (
                 Model $record,
                 array $data,
-                TableEditAction $action,
+                EditAction $action,
             ) {
                 app(static::class)->executeUpdateAction(
                     fn() => app(static::class)
@@ -150,10 +148,10 @@ trait HasOrchestratorActionsV3
             ->successNotificationTitle(null);
     }
 
-    public static function getTableDeleteAction(): TableDeleteAction
+    public static function getTableDeleteAction(): DeleteAction
     {
-        return TableDeleteAction::make()
-            ->action(function (Model $record, TableDeleteAction $action) {
+        return DeleteAction::make()
+            ->action(function (Model $record, DeleteAction $action) {
                 app(static::class)->executeDeleteAction(
                     fn() => app(static::class)
                         ->getOrchestrator()
